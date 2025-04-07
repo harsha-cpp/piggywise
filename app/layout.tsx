@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Teach your kids about credit scores with Piggywise's interactive platform",
   generator: 'v0.dev',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
     apple: '/apple-icon.png',
   }
 }
@@ -36,7 +36,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-
-import './globals.css'
