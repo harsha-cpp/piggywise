@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     // Create reset URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
     console.log('Reset URL created:', resetUrl);
     
