@@ -12,11 +12,17 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Piggywise - Credit Score Education for Kids",
   description: "Teach your kids about credit scores with Piggywise's interactive platform",
-  generator: 'v0.dev',
+  generator: 'Piggywise',
   icons: {
     icon: '/favicon.png',
     apple: '/apple-icon.png',
-  }
+  },
+  metadataBase: new URL('https://piggy-wise.vercel.app'),
+  openGraph: {
+    title: 'Piggywise',
+    description: 'teach your kid finance, with Piggywise',
+    images: ['/peppapig.png'],
+  },
 }
 
 export default function RootLayout({
