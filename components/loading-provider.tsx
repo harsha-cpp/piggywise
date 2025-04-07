@@ -12,24 +12,51 @@ const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   
+  // First effect just to mark component as mounted (client-side only)
   useEffect(() => {
-    // Check if this is the first visit
-    const hasVisited = localStorage.getItem('has_visited_piggywise');
+    setMounted(true);
+  }, []);
+  
+  // Second effect to handle the loading state
+  useEffect(() => {
+    if (!mounted) return; // Skip if not mounted yet
+    
+    let hasVisited = false;
+    
+    // Try to access localStorage (only works on client-side)
+    try {
+      hasVisited = localStorage.getItem('has_visited_piggywise') === 'true';
+    } catch (e) {
+      console.error('localStorage is not available');
+    }
     
     if (hasVisited) {
       // Even if already visited, still show loading for 2 seconds
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setIsLoading(false);
       }, 2000);
+      return () => clearTimeout(timer);
     } else {
       // First visit, show loading screen for longer
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setIsLoading(false);
-        localStorage.setItem('has_visited_piggywise', 'true');
+        try {
+          localStorage.setItem('has_visited_piggywise', 'true');
+        } catch (e) {
+          console.error('localStorage is not available');
+        }
       }, 3500); // 3.5 second loading screen for first time
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [mounted]); // Only run when mounted changes
+  
+  // Return loading UI or children
+  if (!mounted) {
+    // Initial state while server rendering
+    return <>{children}</>;
+  }
   
   return (
     <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
