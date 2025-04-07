@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://piggy-wise.vercel.app'),
   openGraph: {
     title: 'Piggywise',
-    description: 'teach your kid finance, with Piggywise',
+    description: 'Teach your kids about credit scores with Piggywise',
     images: ['/peppapig.png'],
   },
 }
