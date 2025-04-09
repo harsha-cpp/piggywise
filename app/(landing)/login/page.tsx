@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { signIn, useSession } from "next-auth/react"
+import { signIn, useSession, signOut } from "next-auth/react"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -16,8 +16,11 @@ export default function Login() {
 
   // If already logged in, redirect to dashboard
   useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard")
+    // Check if user is coming from a direct /login URL - if so, always force login
+    const forceLogin = new URLSearchParams(window.location.search).get('force') === 'true';
+    
+    if (status === "authenticated" && !forceLogin) {
+      router.push("/dashboard");
     }
   }, [status, router])
 

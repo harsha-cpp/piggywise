@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { SendHorizontal, X, MessageCircle, Sparkles } from 'lucide-react'
 import Image from 'next/image'
+import { useSession } from 'next-auth/react'
 
 interface Message {
   text: string
@@ -11,14 +12,23 @@ interface Message {
 }
 
 export function KidChatbot() {
+  const { data: session } = useSession()
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<Message[]>([
-    { text: "Hey there! I'm PiggyWise AI, ready to help with money questions. What would you like to know? 💰", sender: 'bot', timestamp: Date.now() }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
   const [showPredefinedQuestions, setShowPredefinedQuestions] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  // Get user's name from session, or use default
+  const userName = session?.user?.name || "there"
+  
+  // Set initial message when component mounts or userName changes
+  useEffect(() => {
+    setMessages([
+      { text: `Hey ${userName}! I'm PiggyWise AI, ready to help with money questions. What would you like to know? 💰`, sender: 'bot', timestamp: Date.now() }
+    ])
+  }, [userName])
 
   // Reset messages when chat is closed
   const handleClose = () => {
@@ -26,7 +36,7 @@ export function KidChatbot() {
     // Reset messages to initial state after closing
     setTimeout(() => {
       setMessages([
-        { text: "Hey there! I'm PiggyWise AI, ready to help with money questions. What would you like to know? 💰", sender: 'bot', timestamp: Date.now() }
+        { text: `Hey ${userName}! I'm PiggyWise AI, ready to help with money questions. What would you like to know? 💰`, sender: 'bot', timestamp: Date.now() }
       ])
       setInput('')
       setShowPredefinedQuestions(true)
@@ -38,11 +48,11 @@ export function KidChatbot() {
     // If chat is closed, always reset to initial state
     if (!open) {
       setMessages([
-        { text: "Hey there! I'm PiggyWise AI, ready to help with money questions. What would you like to know? 💰", sender: 'bot', timestamp: Date.now() }
+        { text: `Hey ${userName}! I'm PiggyWise AI, ready to help with money questions. What would you like to know? 💰`, sender: 'bot', timestamp: Date.now() }
       ])
       setShowPredefinedQuestions(true)
     }
-  }, [open])
+  }, [open, userName])
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -92,7 +102,8 @@ export function KidChatbot() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             message: question, 
-            instructions: "Provide a kid-friendly answer but don't start every response with 'Hey Kiddo!' - vary your greetings or skip greetings entirely when answering follow-up questions."
+            userName: userName,
+            instructions: "Provide a kid-friendly answer but don't start every response with a greeting - vary your greetings or skip greetings entirely when answering follow-up questions."
           }),
           signal: controller.signal
         })
@@ -198,7 +209,8 @@ export function KidChatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: message, 
-          instructions: "Provide a kid-friendly answer but don't start every response with 'Hey Kiddo!' - vary your greetings or skip greetings entirely when answering follow-up questions."
+          userName: userName,
+          instructions: "Provide a kid-friendly answer but don't start every response with a greeting - vary your greetings or skip greetings entirely when answering follow-up questions."
         }),
         signal: controller.signal
       });

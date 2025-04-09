@@ -15,6 +15,10 @@ export function SettingsPage() {
     setNickname(e.target.value)
   }
 
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/login?force=true' })
+  }
+
   return (
     <div>
       <header className="mb-6">
@@ -118,7 +122,7 @@ export function SettingsPage() {
 
         <div className="p-4">
           <button 
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={handleSignOut}
             className="flex items-center gap-3 w-full text-left"
           >
             <div className="bg-red-100 p-2 rounded-full">
@@ -130,6 +134,17 @@ export function SettingsPage() {
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Prominent sign out button */}
+      <div className="mt-6">
+        <button 
+          onClick={handleSignOut}
+          className="w-full flex items-center justify-center gap-2 p-3 bg-red-100 rounded-lg text-red-700 hover:bg-red-200 transition-colors"
+        >
+          <LogOut className="h-5 w-5" /> 
+          <span className="font-semibold">Sign Out</span>
+        </button>
       </div>
 
       <div className="mt-6 text-center">

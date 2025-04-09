@@ -5,7 +5,7 @@ import { env } from "./env";
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
 // Create a model instance with kid-friendly parameters
-export async function getChatResponse(prompt: string, instructions?: string): Promise<string> {
+export async function getChatResponse(prompt: string, instructions?: string, userName?: string): Promise<string> {
   try {
     console.log("Sending request to Gemini API with key length:", env.GEMINI_API_KEY.length);
     
@@ -23,6 +23,9 @@ export async function getChatResponse(prompt: string, instructions?: string): Pr
     
     // Add any custom instructions
     const additionalInstructions = instructions ? `\n\nAdditional Instructions: ${instructions}` : '';
+    
+    // Use the provided name or fallback to a generic term
+    const childName = userName || "there";
     
     const result = await model.generateContent({
       contents: [
@@ -43,10 +46,10 @@ export async function getChatResponse(prompt: string, instructions?: string): Pr
               - Always be positive and supportive
               - Use examples relevant to kids (toys, games, treats, etc.)
               - Keep responses under 3 sentences when possible
-              - Don't start every response with "Hey Kiddo!" - vary your greetings
+              - Don't start every response with a greeting - vary your greetings
               - For follow-up questions, just answer directly without a greeting
               
-              The kid's name is Kiddo - use their name occasionally to personalize responses.${additionalInstructions}
+              The kid's name is ${childName} - use their name occasionally to personalize responses.${additionalInstructions}
               
               Question: ${prompt}`
             }

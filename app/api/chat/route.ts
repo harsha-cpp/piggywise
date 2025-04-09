@@ -4,7 +4,7 @@ import { env } from '@/lib/env';
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, instructions } = await req.json();
+    const { message, instructions, userName } = await req.json();
     
     if (!message || typeof message !== 'string') {
       console.error('Invalid message format:', message);
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const response = await getChatResponse(message, instructions);
+    const response = await getChatResponse(message, instructions, userName);
     console.log('API route sending response:', response?.substring(0, 100) + '...');
     
     return NextResponse.json({ response });
