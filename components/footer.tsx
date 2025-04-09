@@ -30,23 +30,7 @@ export default function Footer() {
             </div>
 
             {/* Information Column */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Information</h3>
-              <div className="space-y-2">
-                <Link href="mailto:piggywise@gmail.com" className="block text-sm hover:underline">
-                  Write a mail
-                </Link>
-                <Link href="/report" className="block text-sm hover:underline">
-                  Statutory Credit Report
-                </Link>
-                <Link href="/terms" className="block text-sm hover:underline">
-                  Terms of Use
-                </Link>
-                <Link href="/privacy" className="block text-sm hover:underline">
-                  Privacy & Cookies
-                </Link>
-              </div>
-            </div>
+           
 
             {/* Company Column */}
             <div>
