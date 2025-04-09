@@ -19,7 +19,7 @@ export default function ChildDashboard() {
   const [activePage, setActivePage] = useState("home");
   const [hasCharacter, setHasCharacter] = useState(true); // Set to true by default to skip first-time experience for now
   const [isLoading, setIsLoading] = useState(true);
-  const [nickname, setNickname] = useState("Kiddo"); // Default nickname
+  const [nickname, setNickname] = useState(""); // Default empty
   const [parentName, setParentName] = useState("Mom"); // Default parent name
   
   // Redirect if not logged in or not a child
@@ -30,6 +30,10 @@ export default function ChildDashboard() {
       redirect("/dashboard/parent");
     } else if (status === "authenticated") {
       setIsLoading(false);
+      // Set nickname from session if available
+      if (session?.user?.name) {
+        setNickname(session.user.name);
+      }
     }
   }, [session, status]);
 
@@ -204,7 +208,7 @@ export default function ChildDashboard() {
                 {/* Header Section */}
                 <div className="mb-8">
                   <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
-                    Hey {nickname},
+                    Hey {nickname || "there"},
                   </h1>
 
                   {/* Accordion Tabs */}
