@@ -4,83 +4,51 @@ import { hash } from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { name, email, password, userType } = body;
+    const { name, email, password, userType } = await req.json();
 
-    // Basic validation
-    if (!email || !password || !name || !userType) {
+    // Validate input
+    if (!name || !email || !password || !userType) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Check if email is already registered
+    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      // If email exists and trying to register with same user type
-      if (existingUser.userType === userType.toUpperCase()) {
-        return NextResponse.json(
-          { error: "Email already registered" },
-          { status: 400 }
-        );
-      }
-      // If email exists but trying to register with different user type
       return NextResponse.json(
-        { error: "This email is already registered with a different account type" },
+        { error: "User already exists" },
         { status: 400 }
       );
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await hash(password, 12);
 
-    // Create user based on type
-    if (userType.toUpperCase() === "PARENT") {
-      // Create parent user
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          userType: "PARENT",
-        },
-      });
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        userType,
+        // Initialize XP and level for child users
+        xp: userType === "CHILD" ? 0 : undefined,
+        level: userType === "CHILD" ? 1 : undefined,
+      },
+    });
 
-      return NextResponse.json({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        userType: user.userType,
-      });
-    } else if (userType.toUpperCase() === "CHILD") {
-      // For child users, we may need to link to a parent
-      // For now, creating without parent linkage
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          userType: "CHILD",
-          creditScore: 500, // Default credit score for children
-        },
-      });
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
 
-      return NextResponse.json({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        userType: user.userType,
-      });
-    } else {
-      return NextResponse.json(
-        { error: "Invalid user type" },
-        { status: 400 }
-      );
-    }
+    return NextResponse.json(
+      { message: "User created successfully", user: userWithoutPassword },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
