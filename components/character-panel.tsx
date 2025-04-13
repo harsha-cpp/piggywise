@@ -1,6 +1,28 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+
 export function CharacterPanel() {
+  const { data: session } = useSession()
+  const [userXP, setUserXP] = useState(350)
+  const [userLevel, setUserLevel] = useState(4)
+  
+  // Load user XP and level data when available
+  useEffect(() => {
+    // In a real implementation, this would fetch from API
+    // For now, we just use default values
+  }, [session])
+  
+  // Calculate level progress percentage
+  const calculateLevelProgress = () => {
+    const xpForCurrentLevel = (userLevel - 1) * 100
+    const xpForNextLevel = userLevel * 100
+    const xpInCurrentLevel = userXP - xpForCurrentLevel
+    const xpNeededForNextLevel = xpForNextLevel - xpForCurrentLevel
+    return Math.round((xpInCurrentLevel / xpNeededForNextLevel) * 100)
+  }
+  
   return (
     <div
       className="bg-gradient-to-b from-blue-300 to-blue-400 rounded-xl shadow-md overflow-hidden h-auto border border-blue-200"
@@ -36,19 +58,19 @@ export function CharacterPanel() {
         {/* Character level and progress */}
         <div className="w-full bg-blue-500/50 p-2 rounded-lg">
           <div className="flex justify-between items-center text-white mb-1">
-            <span className="text-sm font-medium">Level 3</span>
-            <span className="text-sm font-medium">75%</span>
+            <span className="text-sm font-medium">Level {userLevel}</span>
+            <span className="text-sm font-medium">{calculateLevelProgress()}%</span>
           </div>
           <div className="h-2 bg-white/30 rounded-full overflow-hidden">
-            <div className="h-full bg-white rounded-full" style={{ width: '75%' }}></div>
+            <div className="h-full bg-white rounded-full" style={{ width: `${calculateLevelProgress()}%` }}></div>
           </div>
         </div>
         
         {/* Character stats */}
         <div className="w-full mt-3 grid grid-cols-2 gap-2">
           <div className="bg-blue-200/50 p-2 rounded-lg text-center">
-            <span className="text-xs font-medium text-blue-900 block">Total Coins</span>
-            <span className="text-lg font-bold text-blue-900">350</span>
+            <span className="text-xs font-medium text-blue-900 block">Total XP</span>
+            <span className="text-lg font-bold text-blue-900">{userXP}</span>
           </div>
           <div className="bg-blue-200/50 p-2 rounded-lg text-center">
             <span className="text-xs font-medium text-blue-900 block">Tasks</span>

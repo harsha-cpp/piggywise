@@ -1,14 +1,55 @@
 "use client"
 
-import { Bell, Moon, User, Volume2, LogOut, Edit, UserCircle } from "lucide-react"
+import { Bell, Moon, User, Volume2, LogOut, Edit, UserCircle, LinkIcon, Copy } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { signOut } from "next-auth/react"
-import { useState, ChangeEvent } from "react"
+import { useState, ChangeEvent, useEffect } from "react"
+import { useToast } from "@/components/ui/use-toast"
 
 export function SettingsPage() {
   const [nickname, setNickname] = useState("Kiddo")
   const [parentName, setParentName] = useState("Your Parent") // This will be from the backend later
   const [editingNickname, setEditingNickname] = useState(false)
+  const [childId, setChildId] = useState("")
+  const [copied, setCopied] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const { toast } = useToast()
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user');
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.name) setNickname(userData.name);
+        if (userData.childId) setChildId(userData.childId);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
+  // Generate a random child ID on component mount if not already set
+  useEffect(() => {
+    if (!childId) {
+      // First check if we already have a saved childId in local storage
+      const savedChildId = localStorage.getItem('piggywise_child_id');
+      
+      if (savedChildId) {
+        // Use the saved child ID
+        setChildId(savedChildId);
+        saveChildId(savedChildId);
+      } else {
+        // Generate a new random 6-character alphanumeric code
+        const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        saveChildId(randomId);
+      }
+    }
+  }, [childId]);
 
   // Handle nickname update
   const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -18,6 +59,59 @@ export function SettingsPage() {
   const handleSignOut = () => {
     signOut({ callbackUrl: '/login?force=true' })
   }
+
+  // Copy child ID to clipboard
+  const copyChildId = () => {
+    navigator.clipboard.writeText(childId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  // Save child ID to the database
+  const saveChildId = async (id: string) => {
+    setIsSaving(true);
+    try {
+      // First save it to localStorage
+      localStorage.setItem('piggywise_child_id', id);
+      
+      const response = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ childId: id }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setChildId(data.childId);
+        toast({
+          title: "Child ID saved",
+          description: "Your unique code is now saved to your account",
+        });
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Failed to save Child ID",
+          description: error.error || "Please try again",
+          variant: "destructive",
+        });
+        // Generate a new ID if the current one is already taken
+        const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        setChildId(newId);
+        localStorage.setItem('piggywise_child_id', newId);
+      }
+    } catch (error) {
+      console.error("Error saving child ID:", error);
+      toast({
+        title: "Error",
+        description: "Could not save your Child ID. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div>
@@ -37,6 +131,30 @@ export function SettingsPage() {
               <p className="text-sm text-gray-600">Edit your profile information</p>
             </div>
             <button className="text-sm font-medium text-blue-600">Edit</button>
+          </div>
+        </div>
+
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className="bg-pink-100 p-2 rounded-full">
+              <LinkIcon className="h-5 w-5 text-pink-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium">Child ID</h3>
+              <p className="text-sm text-gray-600">Share with parents to link accounts:</p>
+              <div className="mt-1 flex items-center">
+                <span className="bg-gray-100 px-3 py-1 rounded-md font-mono text-base font-semibold">
+                  {childId}
+                </span>
+                <button 
+                  onClick={copyChildId}
+                  className="ml-2 p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <Copy className="h-4 w-4 text-gray-600" />
+                </button>
+                {copied && <span className="ml-2 text-xs text-green-600">Copied!</span>}
+              </div>
+            </div>
           </div>
         </div>
 

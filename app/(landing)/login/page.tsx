@@ -12,17 +12,7 @@ export default function Login() {
   const [loginType, setLoginType] = useState<"CHILD" | "PARENT">("CHILD")
   const [error, setError] = useState("")
   const router = useRouter()
-  const { status } = useSession()
-
-  // If already logged in, redirect to dashboard
-  useEffect(() => {
-    // Check if user is coming from a direct /login URL - if so, always force login
-    const forceLogin = new URLSearchParams(window.location.search).get('force') === 'true';
-    
-    if (status === "authenticated" && !forceLogin) {
-      router.push("/dashboard");
-    }
-  }, [status, router])
+  const { data: session, status } = useSession()
 
   // Update background color when login type changes and hide footer
   useEffect(() => {
@@ -64,6 +54,7 @@ export default function Login() {
       }
 
       // Successful login - will be redirected by useEffect when session updates
+      router.push("/dashboard");
     } catch (error) {
       setError("An error occurred. Please try again.")
       console.error("Login error:", error)
@@ -72,20 +63,59 @@ export default function Login() {
     setIsLoading(false)
   }
 
+  const handleLogout = async () => {
+    setIsLoading(true);
+    await signOut({ redirect: false });
+    setIsLoading(false);
+    // The page will rerender with status="unauthenticated"
+  }
+
+  if (status === "authenticated") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] px-4 sm:px-6">
+        <div className="w-full max-w-md p-4 sm:p-6 bg-white rounded-lg shadow-md">
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-lg sm:text-xl font-bold">Already Logged In</h1>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">
+              You're currently logged in as {session?.user?.name || session?.user?.email} ({session?.user?.userType || 'USER'})
+            </p>
+          </div>
+          
+          <div className="flex flex-col space-y-3 sm:space-y-4">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full p-2.5 sm:p-3 bg-green-800 text-white text-sm sm:text-base rounded hover:bg-green-900 transition-colors"
+            >
+              Go to Dashboard
+            </button>
+            
+            <button
+              onClick={handleLogout}
+              className="w-full p-2.5 sm:p-3 bg-gray-200 text-gray-800 text-sm sm:text-base rounded hover:bg-gray-300 transition-colors"
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging out..." : "Log out and switch accounts"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)]">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] px-4 sm:px-6">
       <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">Check back in</h1>
-          <p className="text-gray-600 mt-2">Welcome back to your financial journey</p>
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">Check back in</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Welcome back to your financial journey</p>
         </div>
 
         {/* Toggle Between Child and Parent Login */}
-        <div className="flex justify-center mb-6">
-          <div className="flex rounded-full shadow-md overflow-hidden w-[280px]">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="flex rounded-full shadow-md overflow-hidden w-full max-w-[280px]">
             <button
               onClick={() => setLoginType("CHILD")}
-              className={`w-1/2 py-3 px-4 text-base font-medium transition-all duration-300 ${
+              className={`w-1/2 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition-all duration-300 ${
                 loginType === "CHILD"
                   ? "bg-green-800 text-white"
                   : "bg-gray-200 text-gray-500 hover:bg-gray-300"
@@ -95,7 +125,7 @@ export default function Login() {
             </button>
             <button
               onClick={() => setLoginType("PARENT")}
-              className={`w-1/2 py-3 px-4 text-base font-medium transition-all duration-300 ${
+              className={`w-1/2 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition-all duration-300 ${
                 loginType === "PARENT"
                   ? "bg-green-800 text-white"
                   : "bg-gray-200 text-gray-500 hover:bg-gray-300"
@@ -107,12 +137,12 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">
+          <div className="mb-4 p-2.5 sm:p-3 bg-red-100 text-red-800 rounded text-sm sm:text-base">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 mt-4">
           <div>
             <input
               type="email"
@@ -120,7 +150,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
+              className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
             />
           </div>
 
@@ -131,28 +161,27 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
+              className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
             />
           </div>
 
           <div className="flex justify-end">
-            <Link href="/reset-password/forgot-password
-" className="text-sm text-green-800 hover:underline">
+            <Link href="/reset-password/forgot-password" className="text-xs sm:text-sm text-green-800 hover:underline">
               Forgotten Password?
             </Link>
           </div>
 
           <button
             type="submit"
-            className="w-full p-3 bg-green-800 text-white rounded hover:bg-green-900 transition-colors mt-2"
+            className="w-full p-2.5 sm:p-3 bg-green-800 text-white rounded hover:bg-green-900 transition-colors mt-2 text-sm sm:text-base"
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : loginType === "PARENT" ? "Parent Login" : "Child Login"}
           </button>
         </form>
 
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-600">
+        <div className="text-center mt-4 sm:mt-6">
+          <p className="text-xs sm:text-sm text-gray-600">
             New to Piggywise?{" "}
             <Link href="/signup" className="text-green-800 hover:underline">
               Sign up

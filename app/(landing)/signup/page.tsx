@@ -88,19 +88,19 @@ export default function Signup() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)]">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] px-4 sm:px-6">
       <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">Create an account</h1>
-          <p className="text-gray-600 mt-2">Join Piggywise to manage your credit score</p>
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">Create an account</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Join Piggywise to manage your credit score</p>
         </div>
 
         {/* Toggle Between Child and Parent Signup */}
-        <div className="flex justify-center mb-6">
-          <div className="flex rounded-full shadow-md overflow-hidden w-[280px]">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="flex rounded-full shadow-md overflow-hidden w-full max-w-[280px]">
             <button
               onClick={() => setSignupType("CHILD")}
-              className={`w-1/2 py-3 px-4 text-base font-medium transition-all duration-300 ${
+              className={`w-1/2 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition-all duration-300 ${
                 signupType === "CHILD"
                   ? "bg-green-800 text-white"
                   : "bg-gray-200 text-gray-500 hover:bg-gray-300"
@@ -110,7 +110,7 @@ export default function Signup() {
             </button>
             <button
               onClick={() => setSignupType("PARENT")}
-              className={`w-1/2 py-3 px-4 text-base font-medium transition-all duration-300 ${
+              className={`w-1/2 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition-all duration-300 ${
                 signupType === "PARENT"
                   ? "bg-green-800 text-white"
                   : "bg-gray-200 text-gray-500 hover:bg-gray-300"
@@ -122,12 +122,12 @@ export default function Signup() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">
+          <div className="mb-4 p-2.5 sm:p-3 bg-red-100 text-red-800 rounded text-sm sm:text-base">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 mt-4">
           <div>
             <input
               type="text"
@@ -135,7 +135,7 @@ export default function Signup() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
+              className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
             />
           </div>
 
@@ -146,7 +146,7 @@ export default function Signup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
+              className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
             />
           </div>
 
@@ -157,7 +157,7 @@ export default function Signup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
+              className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
             />
           </div>
 
@@ -168,7 +168,7 @@ export default function Signup() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
+              className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-800"
             />
           </div>
 
@@ -180,7 +180,7 @@ export default function Signup() {
               onChange={(e) => setAgreeTerms(e.target.checked)}
               className="mr-2"
             />
-            <label htmlFor="terms" className="text-sm text-gray-600">
+            <label htmlFor="terms" className="text-xs sm:text-sm text-gray-600">
               I agree to the{" "}
               <Link href="/terms" className="text-green-800 hover:underline">
                 terms and conditions
@@ -190,15 +190,15 @@ export default function Signup() {
 
           <button
             type="submit"
-            className="w-full p-3 bg-green-800 text-white rounded hover:bg-green-900 transition-colors mt-2"
+            className="w-full p-2.5 sm:p-3 bg-green-800 text-white rounded hover:bg-green-900 transition-colors mt-2 text-sm sm:text-base"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : signupType === "PARENT" ? "Parent Sign up" : "Child Sign up"}
           </button>
         </form>
 
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-600">
+        <div className="text-center mt-4 sm:mt-6">
+          <p className="text-xs sm:text-sm text-gray-600">
             Already have an account?{" "}
             <Link href="/login" className="text-green-800 hover:underline">
               Log in

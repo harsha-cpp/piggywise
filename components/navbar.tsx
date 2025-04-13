@@ -5,11 +5,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const pathname = usePathname()
+  const { data: session, status } = useSession()
   
   // Check if current page is login or signup
   const isAuthPage = pathname === '/login' || pathname === '/signup'
@@ -26,12 +28,21 @@ export default function Navbar() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
   }
+  
+  const handleSignOut = async () => {
+    await signOut({ redirect: true, callbackUrl: '/' })
+  }
 
   const navLinks = [
     { name: "Know your type", href: "/" },
     { name: "Grow your score ", href: "/grow-your-score" },
     { name: "Read our story", href: "/read-our-story" },
   ]
+  
+  // Determine which dashboard to go to based on user type
+  const dashboardLink = session?.user?.userType === 'PARENT' 
+    ? '/dashboard/parent' 
+    : '/dashboard/child'
 
   return (
     <header className={`fixed top-0 left-0 right-0 w-full py-4 z-50 transition-all duration-300 ${
@@ -72,16 +83,34 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Login/Signup buttons - Right section */}
+        {/* Right section: Login/Signup or Dashboard/Switch Accounts based on session */}
         <div className="hidden md:flex items-center space-x-4 w-[200px] justify-end mx-8 md:mx-16">
-          <Link href="/login">
-            <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black">Log in</button>
-          </Link>
-          <Link href="/signup">
-            <button className="px-4 py-2 text-sm font-medium bg-green-800 text-white rounded hover:bg-green-900">
-              Sign up
-            </button>
-          </Link>
+          {status === 'authenticated' ? (
+            <>
+              <Link href={dashboardLink}>
+                <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700">
+                  Dashboard
+                </button>
+              </Link>
+              <button 
+                onClick={handleSignOut}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black">Log in</button>
+              </Link>
+              <Link href="/signup">
+                <button className="px-4 py-2 text-sm font-medium bg-green-800 text-white rounded hover:bg-green-900">
+                  Sign up
+                </button>
+              </Link>
+            </>
+          )}
         </div>
 
         <button className="md:hidden mx-8" onClick={toggleMenu} aria-label="Toggle menu">
@@ -108,16 +137,37 @@ export default function Navbar() {
               ))}
             </nav>
             <div className="flex flex-col space-y-2 pt-2 border-t">
-              <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-black text-left">
-                  Log in
-                </button>
-              </Link>
-              <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
-                <button className="w-full px-4 py-2 text-sm font-medium bg-green-800 text-white rounded hover:bg-green-900 text-left">
-                  Sign up
-                </button>
-              </Link>
+              {status === 'authenticated' ? (
+                <>
+                  <Link href={dashboardLink} onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full px-4 py-2 text-sm font-medium bg-green-600 text-white rounded hover:bg-green-700 text-left">
+                      Dashboard
+                    </button>
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-black text-left"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-black text-left">
+                      Log in
+                    </button>
+                  </Link>
+                  <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full px-4 py-2 text-sm font-medium bg-green-800 text-white rounded hover:bg-green-900 text-left">
+                      Sign up
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
