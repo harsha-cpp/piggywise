@@ -51,18 +51,18 @@ model User {
   userType          UserType           @default(CHILD)
   parentId          String?
   creditScore       Int?               @default(500)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
   resetToken        String?            @unique
   resetTokenExpires DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   childId           String?            @unique
   level             Int?               @default(1)
   xp                Int?               @default(0)
   accounts          Account[]
+  createdModules    Module[]           @relation("CreatedModules")
   assignedModules   ModuleAssignment[] @relation("ParentAssignments")
   moduleAssignments ModuleAssignment[] @relation("ChildAssignments")
   moduleProgress    ModuleProgress[]   @relation("ModuleProgress")
-  createdModules    Module[]           @relation("CreatedModules")
   sessions          Session[]
   parent            User?              @relation("ParentToChild", fields: [parentId], references: [id])
   children          User[]             @relation("ParentToChild")
@@ -86,13 +86,13 @@ model Module {
   description   String
   thumbnailUrl  String?
   totalDuration String
-  totalLessons  Int               @default(0)
+  totalLessons  Int                @default(0)
   isPublished   Boolean            @default(false)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   category      ModuleCategory     @default(GENERAL)
   difficulty    ModuleDifficulty   @default(BEGINNER)
-  creatorId     String             // ID of the parent who created this module
+  creatorId     String
   creator       User               @relation("CreatedModules", fields: [creatorId], references: [id])
   assignments   ModuleAssignment[]
   contents      ModuleContent[]
