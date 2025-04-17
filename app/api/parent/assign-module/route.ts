@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
+import { prisma } from '@/lib/prisma';
 
 // POST /api/parent/assign-module - Assign a module to a child
 export async function POST(req: NextRequest) {
@@ -20,15 +21,33 @@ export async function POST(req: NextRequest) {
 
     console.log(`Assigning module ${moduleId} to child ${childId}`);
 
-    // Return a successful mock response without database access
+    // Check if module assignment already exists
+    const existingAssignment = await prisma.moduleAssignment.findFirst({
+      where: {
+        childId,
+        moduleId,
+      },
+    });
+
+    if (existingAssignment) {
+      return NextResponse.json({
+        message: 'Module already assigned to this child',
+        assignment: existingAssignment,
+      });
+    }
+
+    // Create new module assignment
+    const assignment = await prisma.moduleAssignment.create({
+      data: {
+        moduleId,
+        childId,
+        assignedById: session.user.id,
+      },
+    });
+
     return NextResponse.json({
       message: 'Module assigned successfully',
-      assignment: {
-        id: 'mock-assignment-id',
-        childId: childId,
-        moduleId: moduleId,
-        assignedAt: new Date().toISOString(),
-      },
+      assignment,
     });
   } catch (error) {
     console.error('Error assigning module:', error);
@@ -55,7 +74,26 @@ export async function DELETE(req: NextRequest) {
 
     console.log(`Removing module ${moduleId} assignment from child ${childId}`);
 
-    // Return a successful mock response without database access
+    // Find and delete the assignment
+    const assignment = await prisma.moduleAssignment.findFirst({
+      where: {
+        childId,
+        moduleId,
+      },
+    });
+
+    if (!assignment) {
+      return NextResponse.json({ 
+        message: 'Module assignment not found' 
+      }, { status: 404 });
+    }
+
+    await prisma.moduleAssignment.delete({
+      where: {
+        id: assignment.id,
+      },
+    });
+
     return NextResponse.json({ 
       message: 'Module assignment removed successfully' 
     });

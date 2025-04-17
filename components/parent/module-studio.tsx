@@ -44,9 +44,24 @@ export default function ModuleStudio() {
         throw new Error("Failed to fetch modules")
       }
       const data = await response.json()
+      console.log("Studio modules API response:", data)
+      
+      // Ensure we have an array of modules
+      if (!data || !data.modules || !Array.isArray(data.modules)) {
+        console.warn("Invalid modules data:", data)
+        return []
+      }
+      
       return data.modules
     },
   })
+
+  // Ensure modulesList is always an array
+  const modulesList = Array.isArray(modules) ? modules : []
+  
+  // Debug logging
+  console.log("ModuleStudio - modules:", modules)
+  console.log("ModuleStudio - modulesList:", modulesList)
 
   return (
     <div className="space-y-6">
@@ -74,7 +89,7 @@ export default function ModuleStudio() {
               <div className="col-span-full flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
               </div>
-            ) : modules?.length === 0 ? (
+            ) : !Array.isArray(modulesList) || modulesList.length === 0 ? (
               <div className="col-span-full text-center py-12">
                 <div className="mb-6 rounded-full bg-purple-100 p-6 inline-block">
                   <BrainCircuit className="h-12 w-12 text-purple-600" />
@@ -85,7 +100,7 @@ export default function ModuleStudio() {
                 </p>
               </div>
             ) : (
-              modules?.map((module) => (
+              modulesList.map((module) => (
                 <ModuleCard
                   key={module.id}
                   module={module}

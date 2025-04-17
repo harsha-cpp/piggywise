@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 // GET /api/parent/assigned-modules - Get modules assigned to a child
 export async function GET(req: NextRequest) {
@@ -42,9 +42,10 @@ export async function GET(req: NextRequest) {
             id: true,
             title: true,
             description: true,
-            imageUrl: true,
+            thumbnailUrl: true,
             category: true,
-            ageRange: true,
+            difficulty: true,
+            totalDuration: true,
           },
         },
       },
@@ -55,7 +56,20 @@ export async function GET(req: NextRequest) {
 
     // Get progress info for each module
     const assignmentsWithProgress = await Promise.all(
-      assignments.map(async (assignment) => {
+      assignments.map(async (assignment: { 
+        id: string;
+        moduleId: string;
+        assignedAt: Date;
+        module: {
+          id: string;
+          title: string;
+          description: string;
+          thumbnailUrl: string | null;
+          category: string;
+          difficulty: string;
+          totalDuration: string;
+        };
+      }) => {
         const progress = await prisma.moduleProgress.findFirst({
           where: {
             childId: childId,
@@ -66,7 +80,10 @@ export async function GET(req: NextRequest) {
         return {
           id: assignment.id,
           assignedAt: assignment.assignedAt,
-          module: assignment.module,
+          module: {
+            ...assignment.module,
+            imageUrl: assignment.module.thumbnailUrl, // Add imageUrl for frontend compatibility
+          },
           progress: progress ? {
             status: progress.status,
             completedLessons: progress.completedLessons,

@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
             id: true,
             title: true,
             description: true,
-            imageUrl: true,
+            thumbnailUrl: true,
             category: true,
           },
         },
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
             id: true,
             title: true,
             description: true,
-            imageUrl: true,
+            thumbnailUrl: true,
             category: true,
           },
         },
@@ -68,12 +68,24 @@ export async function GET(req: NextRequest) {
         status: 'NOT_STARTED',
         completedLessons: 0,
         lastUpdated: null,
-        module: assignment.module,
+        module: {
+          ...assignment.module,
+          imageUrl: assignment.module.thumbnailUrl // Map thumbnailUrl to imageUrl for frontend compatibility
+        },
       })),
     ];
 
+    // Map thumbnailUrl to imageUrl in progress entries for frontend compatibility
+    const mappedProgress = completeProgress.map(item => ({
+      ...item,
+      module: {
+        ...item.module,
+        imageUrl: item.module.thumbnailUrl
+      }
+    }));
+
     return NextResponse.json({
-      progress: completeProgress,
+      progress: mappedProgress,
     });
   } catch (error) {
     console.error('Error fetching module progress:', error);

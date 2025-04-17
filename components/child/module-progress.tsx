@@ -18,6 +18,7 @@ type ModuleProgress = {
     title: string;
     description: string;
     imageUrl: string;
+    thumbnailUrl?: string;
     category: string;
   };
 };
@@ -39,10 +40,11 @@ export default function ModuleProgress() {
         }
         
         const data = await res.json();
-        setProgress(data.progress);
+        console.log('Module progress data:', data);
+        setProgress(data.progress || []);
       } catch (err) {
+        console.error('Error fetching modules:', err);
         setError('Could not load your progress. Please try again later.');
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -141,9 +143,9 @@ export default function ModuleProgress() {
                 <div className="flex flex-col sm:flex-row w-full">
                   <div className="w-full sm:w-1/4 h-32 sm:h-auto relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-20" />
-                    {item.module.imageUrl ? (
+                    {(item.module.imageUrl || item.module.thumbnailUrl) ? (
                       <Image
-                        src={item.module.imageUrl}
+                        src={item.module.imageUrl || item.module.thumbnailUrl || '/placeholder.svg'}
                         alt={item.module.title}
                         width={300}
                         height={200}

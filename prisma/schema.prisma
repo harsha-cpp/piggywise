@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Account {
@@ -68,6 +69,8 @@ model User {
   children          User[]             @relation("ParentToChild")
   childRelations    UserRelation[]     @relation("ChildRelation")
   parentRelations   UserRelation[]     @relation("ParentRelation")
+  assignedTasks     Task[]             @relation("ChildTasks")
+  createdTasks      Task[]             @relation("ParentTasks")
 }
 
 model UserRelation {
@@ -88,6 +91,7 @@ model Module {
   totalDuration String
   totalLessons  Int                @default(0)
   isPublished   Boolean            @default(false)
+  isMarketplace Boolean            @default(false)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   category      ModuleCategory     @default(GENERAL)
@@ -132,9 +136,29 @@ model ModuleProgress {
   child            User     @relation("ModuleProgress", fields: [childId], references: [id])
 }
 
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String    @default("")
+  dueDate     DateTime?
+  status      TaskStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+  childId     String
+  parentId    String
+  child       User      @relation("ChildTasks", fields: [childId], references: [id], onDelete: Cascade)
+  parent      User      @relation("ParentTasks", fields: [parentId], references: [id], onDelete: Cascade)
+}
+
 enum UserType {
   CHILD
   PARENT
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
 }
 
 enum ModuleCategory {

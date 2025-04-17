@@ -18,28 +18,31 @@ interface Child {
 
 interface Module {
   id: string
-  name: string
+  title: string
   description: string
-  difficulty?: string
-  estimatedTime?: string
+  duration?: string
+  instructor?: string
+  level?: string
   topics?: string[]
+  creatorId?: string
 }
 
 interface AssignModuleFormProps {
   children: Child[]
   modules: Module[]
+  createdModules?: Module[]
   onAssign: (childId: string, moduleId: string) => Promise<{ success: boolean; message?: string }>
   selectedChildId?: string
 }
 
-export default function AssignModuleForm({ children, modules, onAssign, selectedChildId }: AssignModuleFormProps) {
+export default function AssignModuleForm({ children, modules, createdModules = [], onAssign, selectedChildId }: AssignModuleFormProps) {
   const [selectedModuleId, setSelectedModuleId] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [noteToChild, setNoteToChild] = useState("")
   const { toast } = useToast()
 
-  const selectedModule = modules.find((m) => m.id === selectedModuleId)
+  const selectedModule = modules.find((m) => m.id === selectedModuleId) || createdModules.find((m) => m.id === selectedModuleId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -116,16 +119,40 @@ export default function AssignModuleForm({ children, modules, onAssign, selected
             <SelectValue placeholder="Choose a learning module" />
           </SelectTrigger>
           <SelectContent>
-            {modules.length === 0 ? (
+            {modules.length === 0 && createdModules.length === 0 ? (
               <div className="p-2 text-center text-xs sm:text-sm text-muted-foreground">
                 No modules available
               </div>
             ) : (
-              modules.map((module) => (
-                <SelectItem key={module.id} value={module.id} className="text-xs sm:text-sm">
-                  {module.name}
-                </SelectItem>
-              ))
+              <>
+                {createdModules.length > 0 && (
+                  <>
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
+                      Your Created Modules
+                    </div>
+                    {createdModules.map((module) => (
+                      <SelectItem key={module.id} value={module.id} className="text-xs sm:text-sm pl-4">
+                        {module.title}
+                      </SelectItem>
+                    ))}
+                    {modules.length > 0 && <div className="h-px bg-slate-100 my-1" />}
+                  </>
+                )}
+                {modules.length > 0 && (
+                  <>
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
+                      Available Modules
+                    </div>
+                    {modules
+                      .filter(module => !createdModules.some(created => created.id === module.id))
+                      .map((module) => (
+                        <SelectItem key={module.id} value={module.id} className="text-xs sm:text-sm pl-4">
+                          {module.title}
+                        </SelectItem>
+                      ))}
+                  </>
+                )}
+              </>
             )}
           </SelectContent>
         </Select>
@@ -136,22 +163,22 @@ export default function AssignModuleForm({ children, modules, onAssign, selected
           <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
             <h3 className="font-medium text-sm sm:text-base flex items-center">
               <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 text-amber-500" />
-              {selectedModule.name}
+              {selectedModule.title}
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 mt-1.5 sm:mt-2">{selectedModule.description}</p>
             
-            {(selectedModule.difficulty || selectedModule.estimatedTime) && (
+            {(selectedModule.level || selectedModule.duration) && (
               <div className="flex gap-2 sm:gap-3 mt-2 sm:mt-3">
-                {selectedModule.difficulty && (
+                {selectedModule.level && (
                   <div className="text-xs">
-                    <span className="font-medium block mb-0.5">Difficulty</span>
-                    <span className="text-slate-600">{selectedModule.difficulty}</span>
+                    <span className="font-medium block mb-0.5">Level</span>
+                    <span className="text-slate-600">{selectedModule.level}</span>
                   </div>
                 )}
-                {selectedModule.estimatedTime && (
+                {selectedModule.duration && (
                   <div className="text-xs">
-                    <span className="font-medium block mb-0.5">Estimated Time</span>
-                    <span className="text-slate-600">{selectedModule.estimatedTime}</span>
+                    <span className="font-medium block mb-0.5">Duration</span>
+                    <span className="text-slate-600">{selectedModule.duration}</span>
                   </div>
                 )}
               </div>

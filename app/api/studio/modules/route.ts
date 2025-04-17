@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import prisma from "@/lib/prisma"
 import { authOptions } from "@/auth"
-import { uploadVideo } from "@/lib/cloudinary"
+import { uploadVideo, uploadImage } from "@/lib/cloudinary"
 
 export async function POST(req: Request) {
   try {
@@ -25,79 +25,92 @@ export async function POST(req: Request) {
     const formData = await req.formData()
     const title = formData.get("title") as string
     const description = formData.get("description") as string
-    const thumbnailUrl = formData.get("thumbnailUrl") as string
+    const thumbnail = formData.get("thumbnail") as File
     const category = formData.get("category") as string
     const difficulty = formData.get("difficulty") as string
-    const contentsStr = formData.get("contents") as string
-    const videos = formData.getAll("videos") as File[]
+
+    // Extract lesson data
+    const lessons: Array<{
+      title: string;
+      description: string;
+      video: File;
+    }> = [];
+
+    // Parse lesson data from formData
+    let index = 0;
+    while (formData.has(`lessons[${index}][title]`)) {
+      const lessonTitle = formData.get(`lessons[${index}][title]`) as string;
+      const lessonDescription = formData.get(`lessons[${index}][description]`) as string;
+      const lessonVideo = formData.get(`lessons[${index}][video]`) as File;
+
+      lessons.push({
+        title: lessonTitle,
+        description: lessonDescription,
+        video: lessonVideo,
+      });
+
+      index++;
+    }
 
     console.log("Received form data:", {
       title,
       description,
-      thumbnailUrl,
       category,
       difficulty,
-      contentsStr,
-      videoCount: videos.length
-    })
+      lessonCount: lessons.length
+    });
 
     // Validate required fields
-    if (!title || !description || !contentsStr || !videos.length) {
+    if (!title || !description || !thumbnail || lessons.length === 0) {
       return NextResponse.json({ 
         error: "Missing required fields",
         details: {
           title: !title,
           description: !description,
-          contents: !contentsStr,
-          videos: !videos.length
+          thumbnail: !thumbnail,
+          lessons: lessons.length === 0
         }
       }, { status: 400 })
     }
 
-    // Parse contents
-    let contents: any[]
     try {
-      contents = JSON.parse(contentsStr)
-      if (!Array.isArray(contents)) {
-        throw new Error("Contents must be an array")
-      }
-    } catch (parseError) {
-      console.error("[CONTENTS_PARSE_ERROR]", parseError)
-      return NextResponse.json({ 
-        error: "Invalid contents format",
-        details: parseError instanceof Error ? parseError.message : String(parseError)
-      }, { status: 400 })
-    }
+      // Upload thumbnail to Cloudinary
+      const thumbnailBuffer = await thumbnail.arrayBuffer();
+      const thumbnailBase64 = Buffer.from(thumbnailBuffer).toString('base64');
+      const thumbnailDataURI = `data:${thumbnail.type};base64,${thumbnailBase64}`;
+      const uploadedThumbnail = await uploadImage(thumbnailDataURI);
 
-    // Upload videos to Cloudinary
-    const videoUploads = await Promise.all(
-      videos.map(async (video) => {
-        const arrayBuffer = await video.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        return uploadVideo(buffer)
-      })
-    )
+      // Upload videos to Cloudinary
+      const videoUploads = await Promise.all(
+        lessons.map(async (lesson) => {
+          const videoBuffer = await lesson.video.arrayBuffer();
+          const videoBase64 = Buffer.from(videoBuffer).toString('base64');
+          const videoDataURI = `data:${lesson.video.type};base64,${videoBase64}`;
+          return uploadVideo(videoDataURI);
+        })
+      );
 
-    // Calculate total duration
-    const totalDuration = videoUploads.reduce((acc, video) => acc + video.duration, 0)
-    const formattedDuration = `${Math.floor(totalDuration / 60)}:${Math.floor(totalDuration % 60).toString().padStart(2, '0')}`
+      // Calculate total duration
+      const totalDuration = videoUploads.reduce((acc, video) => acc + video.duration, 0);
+      const formattedDuration = `${Math.floor(totalDuration / 60)}:${Math.floor(totalDuration % 60).toString().padStart(2, '0')}`;
 
-    try {
       // Create module and its contents
       const module = await prisma.module.create({
         data: {
           title,
           description,
-          thumbnailUrl,
+          thumbnailUrl: uploadedThumbnail.url,
           totalDuration: formattedDuration,
+          totalLessons: lessons.length,
           category,
           difficulty,
           isPublished: true,
+          isMarketplace: true,
           creatorId: user.id,
           contents: {
-            create: contents.map((content: any, index: number) => ({
-              title: content.title,
-              description: content.description || "",
+            create: lessons.map((lesson, index) => ({
+              title: lesson.title,
+              description: lesson.description,
               videoUrl: videoUploads[index].url,
               duration: `${Math.floor(videoUploads[index].duration / 60)}:${Math.floor(videoUploads[index].duration % 60).toString().padStart(2, '0')}`,
               order: index + 1,
@@ -114,24 +127,24 @@ export async function POST(req: Request) {
             }
           }
         },
-      })
+      });
 
-      return NextResponse.json({ module })
+      return NextResponse.json({ module });
     } catch (dbError) {
-      console.error("[DB_ERROR]", dbError)
+      console.error("[DB_ERROR]", dbError);
       return NextResponse.json({ 
         error: "Database error", 
         details: dbError instanceof Error ? dbError.message : String(dbError),
         stack: dbError instanceof Error ? dbError.stack : undefined
-      }, { status: 500 })
+      }, { status: 500 });
     }
   } catch (error) {
-    console.error("[MODULE_STUDIO_CREATE]", error)
+    console.error("[MODULE_STUDIO_CREATE]", error);
     return NextResponse.json({ 
       error: "Internal server error", 
       details: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined
-    }, { status: 500 })
+    }, { status: 500 });
   }
 }
 

@@ -3,8 +3,15 @@
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
-import { CheckSquare, TrendingUp, ChevronDown, ChevronUp } from "lucide-react"
+import { CheckSquare, TrendingUp, ChevronDown, ChevronUp, Square, CheckCircle, Calendar } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
+import confetti from 'canvas-confetti';
+import { Task } from "@/components/parent/parent-tasks";
 
 import { CharacterPanel } from "@/components/character-panel"
 import { ModuleCard } from "@/components/module-card"
@@ -24,7 +31,106 @@ export default function ChildDashboard() {
   const [parentName, setParentName] = useState("Mom"); // Default parent name
   const [userXP, setUserXP] = useState(350); // User's XP points
   const [userLevel, setUserLevel] = useState(3); // User's level
-  
+  const [recentlyCompleted, setRecentlyCompleted] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch tasks
+  const { data: tasksData, isLoading: isTasksLoading } = useQuery({
+    queryKey: ["childTasks"],
+    queryFn: async () => {
+      const response = await fetch(`/api/child/tasks`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch tasks");
+      }
+      return response.json();
+    },
+    enabled: !!session?.user?.id,
+    refetchInterval: 2000,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+
+  const tasks = tasksData?.tasks || [];
+  const childTasks = tasks.filter((task: Task) => task.childId === session?.user?.id);
+  const completedTasks = childTasks.filter((task: Task) => task.status === "COMPLETED").length;
+  const totalTasks = childTasks.length;
+  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  // Sort tasks: pending first, then by due date
+  const sortedTasks = [...childTasks].sort((a: Task, b: Task) => {
+    if (a.status === "PENDING" && b.status === "COMPLETED") return -1;
+    if (a.status === "COMPLETED" && b.status === "PENDING") return 1;
+    if (a.dueDate && b.dueDate) {
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    }
+    if (a.dueDate && !b.dueDate) return -1;
+    if (!a.dueDate && b.dueDate) return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  // Function to trigger confetti effect
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
+  // Toggle task completion mutation
+  const toggleTaskMutation = useMutation({
+    mutationFn: async ({ taskId, status }: { taskId: string; status: "PENDING" | "COMPLETED" }) => {
+      const response = await fetch(`/api/child/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update task');
+      }
+      
+      return response.json();
+    },
+    onSuccess: async (data, variables) => {
+      // Ensure task data is fully synchronized - double-check
+      syncTaskStatus(variables.taskId, variables.status);
+      
+      if (variables.status === "COMPLETED") {
+        setRecentlyCompleted(variables.taskId);
+        triggerConfetti();
+        toast({
+          title: "Great job! 🎉",
+          description: "You've completed a task!",
+          variant: "default",
+        });
+        
+        setTimeout(() => {
+          setRecentlyCompleted(null);
+        }, 3000);
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle task status toggle
+  const handleToggleTaskStatus = (task: Task) => {
+    const newStatus = task.status === "COMPLETED" ? "PENDING" : "COMPLETED";
+    
+    // First sync all UI components through shared caches
+    syncTaskStatus(task.id, newStatus);
+    
+    // Then trigger server update
+    toggleTaskMutation.mutate({ taskId: task.id, status: newStatus });
+  };
+
   // Calculate level and progress based on XP
   useEffect(() => {
     // Simple level calculation: 100 XP per level, with level 1 starting at 0 XP
@@ -195,27 +301,77 @@ export default function ChildDashboard() {
       activeColor: "bg-red-300/90",
       content: (
         <div className="bg-white rounded-xl p-4 shadow-md mt-2">
-          <h3 className="font-bold text-lg mb-3">Daily Tasks</h3>
-          <ul className="space-y-3">
-            <li className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-              <div className="bg-green-100 p-2 rounded-full">
-                <TrendingUp className="h-5 w-5 text-green-500" />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-lg">Your Tasks</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">{completedTasks} of {totalTasks} completed</span>
+              <Progress value={completionPercentage} className="w-24 h-2" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            {sortedTasks.slice(0, 3).map(task => (
+              <div
+                key={task.id}
+                className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                  task.status === "COMPLETED" 
+                    ? "bg-green-50 border-green-100" 
+                    : "bg-white border-gray-200 hover:border-blue-200"
+                } ${
+                  recentlyCompleted === task.id
+                    ? "ring-2 ring-offset-2 ring-green-500 animate-pulse"
+                    : ""
+                }`}
+              >
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={`h-6 w-6 rounded-full ${task.status === "PENDING" ? "hover:bg-green-100" : ""}`}
+                  onClick={() => handleToggleTaskStatus(task)}
+                >
+                  {task.status === "COMPLETED" ? (
+                    <CheckSquare className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <Square className="h-5 w-5 text-gray-400" />
+                  )}
+                </Button>
+                <div className="flex-1">
+                  <span className={`text-sm ${
+                    task.status === "COMPLETED" ? "line-through text-gray-500" : "text-gray-900"
+                  }`}>
+                    {task.title}
+                  </span>
+                  {task.dueDate && (
+                    <div className="mt-1">
+                      <Badge variant="outline" className="text-xs bg-amber-50 flex items-center gap-1 w-fit">
+                        <Calendar className="h-3 w-3" />
+                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+                <Badge 
+                  variant={task.status === "COMPLETED" ? "default" : "outline"} 
+                  className={`text-xs ${
+                    task.status === "COMPLETED" 
+                      ? "bg-green-100 text-green-800 hover:bg-green-100" 
+                      : ""
+                  }`}
+                >
+                  {task.status === "COMPLETED" ? (
+                    <><CheckCircle className="w-3 h-3 mr-1" /> Done</>
+                  ) : "To Do"}
+                </Badge>
               </div>
-              <div>
-                <h3 className="font-medium">Save 5 Coins</h3>
-                <p className="text-sm text-gray-600">Put some money in your piggy bank!</p>
-              </div>
-            </li>
-            <li className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-              <div className="bg-amber-100 p-2 rounded-full">
-                <CheckSquare className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <h3 className="font-medium">Complete Budget Quiz</h3>
-                <p className="text-sm text-gray-600">Test your knowledge about budgeting</p>
-              </div>
-            </li>
-          </ul>
+            ))}
+          </div>
+          <div className="mt-3">
+            <Button 
+              onClick={() => window.location.href = '/dashboard/child/tasks'}
+              className="w-full py-2 text-sm font-medium rounded-lg bg-[#1E40AF]/10 text-[#1E40AF] hover:bg-[#1E40AF]/20 transition-colors"
+            >
+              View All Tasks
+            </Button>
+          </div>
         </div>
       )
     },
@@ -412,6 +568,34 @@ export default function ChildDashboard() {
         return null
     }
   }
+
+  // Function to update and refetch tasks across components for synchronization
+  const syncTaskStatus = (taskId: string, newStatus: "PENDING" | "COMPLETED") => {
+    // First update caches for immediate visual feedback
+    const updateCache = (queryKey: string) => {
+      const cachedData = queryClient.getQueryData([queryKey]) as { tasks?: any[] } || { tasks: [] };
+      if (cachedData && cachedData.tasks) {
+        const updatedTasks = cachedData.tasks.map((t: any) => 
+          t.id === taskId ? {...t, status: newStatus} : t
+        );
+        queryClient.setQueryData([queryKey], {...cachedData, tasks: updatedTasks});
+      }
+    };
+    
+    // Update both caches
+    updateCache('childTasks');
+    updateCache('parentTasks');
+    
+    // Force refetches to ensure latest data
+    setTimeout(() => {
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['childTasks'] }),
+        queryClient.invalidateQueries({ queryKey: ['parentTasks'] }),
+        queryClient.refetchQueries({ queryKey: ['childTasks'] }),
+        queryClient.refetchQueries({ queryKey: ['parentTasks'] })
+      ]);
+    }, 200);
+  };
 
   if (status === "loading" || isLoading) {
     return (

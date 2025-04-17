@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
 
     // Create relation with the specified relation type
     try {
+      // First create the relation
       const newRelation = await prisma.userRelation.create({
         data: {
           parentId: session.user.id,
@@ -91,6 +92,14 @@ export async function POST(req: NextRequest) {
       });
 
       console.log(`POST /api/parent/link-child - Created relation: ${newRelation.id}`);
+      
+      // Update the child's parentId field
+      await prisma.user.update({
+        where: { id: childUser.id },
+        data: { parentId: session.user.id }
+      });
+      
+      console.log(`POST /api/parent/link-child - Updated child's parentId to: ${session.user.id}`);
       
       return NextResponse.json({ 
         message: 'Child linked successfully',
@@ -148,6 +157,14 @@ export async function DELETE(req: NextRequest) {
         id: existingRelation.id,
       },
     });
+
+    // Clear the child's parentId field
+    await prisma.user.update({
+      where: { id: childId },
+      data: { parentId: null }
+    });
+
+    console.log(`DELETE /api/parent/link-child - Removed child's parentId for child: ${childId}`);
 
     return NextResponse.json({ message: 'Child unlinked successfully' });
   } catch (error) {

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Edit2, Clock, BookOpen } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface Module {
   id: string
@@ -33,11 +34,22 @@ interface ModuleCardProps {
   module: Module
   onEdit?: () => void
   showCreator?: boolean
+  onClick?: () => void
+  isAssigned?: boolean
 }
 
-export function ModuleCard({ module, onEdit, showCreator }: ModuleCardProps) {
+export function ModuleCard({ module, onEdit, showCreator, onClick, isAssigned }: ModuleCardProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card 
+      className={cn(
+        "overflow-hidden",
+        onClick && "cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]",
+        !isAssigned && "opacity-75"
+      )} 
+      onClick={onClick} 
+      role="button" 
+      tabIndex={0}
+    >
       {module.thumbnailUrl && (
         <div className="relative h-48 w-full">
           <img
@@ -67,6 +79,11 @@ export function ModuleCard({ module, onEdit, showCreator }: ModuleCardProps) {
           <Badge variant="secondary">{module.difficulty}</Badge>
           {!module.isPublished && (
             <Badge variant="destructive">Draft</Badge>
+          )}
+          {isAssigned ? (
+            <Badge variant="default" className="bg-green-500">Assigned</Badge>
+          ) : (
+            <Badge variant="secondary">Not Assigned</Badge>
           )}
         </div>
       </CardHeader>

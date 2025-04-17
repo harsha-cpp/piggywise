@@ -40,12 +40,12 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
 
   if (!progressData || !Array.isArray(progressData) || validProgressData.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
+      <div className="p-8 text-center text-gray-600">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
           <AlertCircle className="w-8 h-8 text-purple-500" />
         </div>
-        <h3 className="mb-1 text-lg font-medium">No Modules Assigned</h3>
-        <p className="text-sm">This child doesn't have any learning modules assigned yet</p>
+        <h3 className="mb-1 text-lg font-medium text-gray-900">No Modules Assigned</h3>
+        <p className="text-sm text-gray-600">This child doesn't have any learning modules assigned yet</p>
       </div>
     )
   }
@@ -122,11 +122,11 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
     <div className="space-y-4">
       {/* Overall Progress */}
       <Card className="p-4">
-        <h3 className="font-medium mb-2">Overall Progress</h3>
+        <h3 className="font-medium mb-2 text-gray-900">Overall Progress</h3>
         <Progress value={overallProgress} className="h-3" />
         <div className="flex justify-between mt-1">
-          <span className="text-sm text-muted-foreground">Progress across all modules</span>
-          <span className="text-sm font-medium">{overallProgress}%</span>
+          <span className="text-sm text-gray-600">Progress across all modules</span>
+          <span className="text-sm font-medium text-gray-900">{overallProgress}%</span>
         </div>
       </Card>
 
@@ -167,9 +167,9 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
         <Card className="p-3 bg-green-50">
           <div className="flex items-center justify-center gap-2 mb-1">
             <CheckCircle className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium">Completed</span>
+            <span className="text-sm font-medium text-gray-900">Completed</span>
           </div>
-          <p className="text-center text-xl font-bold">
+          <p className="text-center text-xl font-bold text-gray-900">
             {validProgressData.filter((item) => formatStatus(item.status) === "Completed").length}
           </p>
         </Card>
@@ -177,9 +177,9 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
         <Card className="p-3 bg-amber-50">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Clock className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-medium">In Progress</span>
+            <span className="text-sm font-medium text-gray-900">In Progress</span>
           </div>
-          <p className="text-center text-xl font-bold">
+          <p className="text-center text-xl font-bold text-gray-900">
             {validProgressData.filter((item) => formatStatus(item.status) === "In Progress").length}
           </p>
         </Card>
@@ -187,9 +187,9 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
         <Card className="p-3 bg-slate-50">
           <div className="flex items-center justify-center gap-2 mb-1">
             <AlertCircle className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium">Not Started</span>
+            <span className="text-sm font-medium text-gray-900">Not Started</span>
           </div>
-          <p className="text-center text-xl font-bold">
+          <p className="text-center text-xl font-bold text-gray-900">
             {validProgressData.filter((item) => formatStatus(item.status) === "Not Started").length}
           </p>
         </Card>
@@ -201,7 +201,7 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon(item.status)}
-              <h3 className="font-medium">{item.moduleName}</h3>
+              <h3 className="font-medium text-gray-900">{item.moduleName}</h3>
             </div>
             {getStatusBadge(item.status)}
           </div>
@@ -209,17 +209,17 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
           <div className="mb-2">
             <Progress value={item.progress} className="h-2" />
             <div className="flex justify-between mt-1">
-              <span className="text-xs text-muted-foreground">Progress</span>
-              <span className="text-xs font-medium">{item.progress}%</span>
+              <span className="text-xs text-gray-600">Progress</span>
+              <span className="text-xs font-medium text-gray-900">{item.progress}%</span>
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">Last updated: {formatDate(item.lastUpdated)}</div>
+          <div className="text-xs text-gray-600">Last updated: {formatDate(item.lastUpdated)}</div>
         </Card>
       ))}
 
       {filteredData.length === 0 && (
-        <div className="p-6 text-center text-muted-foreground">
+        <div className="p-6 text-center text-gray-600">
           <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p>No modules match the selected filters</p>
         </div>
