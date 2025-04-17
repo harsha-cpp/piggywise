@@ -45,14 +45,14 @@ export default function Navbar() {
     : '/dashboard/child'
 
   return (
-    <header className={`fixed top-0 left-0 right-0 w-full py-4 z-50 transition-all duration-300 ${
+    <header className={`fixed top-0 left-0 right-0 w-full py-3 sm:py-4 z-50 transition-all duration-300 ${
       hasScrolled || isAuthPage 
         ? "bg-white/70 backdrop-filter backdrop-blur-lg border-b border-white/20 shadow-sm" 
         : "bg-white border-b border-gray-100"
     }`}>
-      <div className="container mx-auto flex items-center justify-between">
-        {/* Logo with proper margins */}
-        <div className="flex items-center w-[200px] mx-6 md:mx-12">
+      <div className="container px-2 sm:px-4 mx-auto flex items-center justify-between">
+        {/* Logo with reduced margins but original size */}
+        <div className="flex items-center w-[180px] sm:w-[200px] mx-2 sm:mx-6 md:mx-12">
           <Link href="/" className="flex items-center space-x-1">
             <Image 
               src="/peppapig.png" 
@@ -83,8 +83,8 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Right section: Login/Signup or Dashboard/Switch Accounts based on session */}
-        <div className="hidden md:flex items-center space-x-4 w-[200px] justify-end mx-8 md:mx-16">
+        {/* Right section with reduced margins */}
+        <div className="hidden md:flex items-center space-x-4 w-[200px] justify-end mx-4 sm:mx-8 md:mx-16">
           {status === 'authenticated' ? (
             <>
               <Link href={dashboardLink}>
@@ -113,7 +113,8 @@ export default function Navbar() {
           )}
         </div>
 
-        <button className="md:hidden mx-8" onClick={toggleMenu} aria-label="Toggle menu">
+        {/* Mobile menu button with reduced margin */}
+        <button className="md:hidden mx-2 sm:mx-4" onClick={toggleMenu} aria-label="Toggle menu">
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
@@ -121,7 +122,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className={`container mx-auto py-4 space-y-4 px-8 md:px-16 ${
+          <div className={`container mx-auto py-4 space-y-4 px-4 sm:px-8 md:px-16 ${
             hasScrolled || isAuthPage ? "bg-white/80 backdrop-filter backdrop-blur-md" : "bg-white"
           }`}>
             <nav className="flex flex-col space-y-4">

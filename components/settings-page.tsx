@@ -5,12 +5,14 @@ import { Switch } from "@/components/ui/switch"
 import { signOut } from "next-auth/react"
 import { useState, ChangeEvent, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
+import { useSession } from "next-auth/react"
 
 export function SettingsPage() {
+  const { data: session } = useSession()
   const [nickname, setNickname] = useState("Kiddo")
   const [parentName, setParentName] = useState("Your Parent") // This will be from the backend later
   const [editingNickname, setEditingNickname] = useState(false)
-  const [childId, setChildId] = useState("")
+  const [childEmail, setChildEmail] = useState("")
   const [copied, setCopied] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
@@ -18,7 +20,11 @@ export function SettingsPage() {
   // Fetch user data on component mount
   useEffect(() => {
     fetchUserProfile();
-  }, []);
+    // Set email from session
+    if (session?.user?.email) {
+      setChildEmail(session.user.email);
+    }
+  }, [session]);
 
   const fetchUserProfile = async () => {
     try {
@@ -26,30 +32,12 @@ export function SettingsPage() {
       if (response.ok) {
         const userData = await response.json();
         if (userData.name) setNickname(userData.name);
-        if (userData.childId) setChildId(userData.childId);
+        if (userData.email) setChildEmail(userData.email);
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
   };
-
-  // Generate a random child ID on component mount if not already set
-  useEffect(() => {
-    if (!childId) {
-      // First check if we already have a saved childId in local storage
-      const savedChildId = localStorage.getItem('piggywise_child_id');
-      
-      if (savedChildId) {
-        // Use the saved child ID
-        setChildId(savedChildId);
-        saveChildId(savedChildId);
-      } else {
-        // Generate a new random 6-character alphanumeric code
-        const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-        saveChildId(randomId);
-      }
-    }
-  }, [childId]);
 
   // Handle nickname update
   const handleNicknameChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -60,58 +48,16 @@ export function SettingsPage() {
     signOut({ callbackUrl: '/login?force=true' })
   }
 
-  // Copy child ID to clipboard
-  const copyChildId = () => {
-    navigator.clipboard.writeText(childId);
+  // Copy child email to clipboard
+  const copyChildEmail = () => {
+    navigator.clipboard.writeText(childEmail);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: "Email copied",
+      description: "Email has been copied to clipboard",
+    });
   }
-
-  // Save child ID to the database
-  const saveChildId = async (id: string) => {
-    setIsSaving(true);
-    try {
-      // First save it to localStorage
-      localStorage.setItem('piggywise_child_id', id);
-      
-      const response = await fetch('/api/user', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ childId: id }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setChildId(data.childId);
-        toast({
-          title: "Child ID saved",
-          description: "Your unique code is now saved to your account",
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Failed to save Child ID",
-          description: error.error || "Please try again",
-          variant: "destructive",
-        });
-        // Generate a new ID if the current one is already taken
-        const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
-        setChildId(newId);
-        localStorage.setItem('piggywise_child_id', newId);
-      }
-    } catch (error) {
-      console.error("Error saving child ID:", error);
-      toast({
-        title: "Error",
-        description: "Could not save your Child ID. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <div>
@@ -140,19 +86,20 @@ export function SettingsPage() {
               <LinkIcon className="h-5 w-5 text-pink-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-medium">Child ID</h3>
+              <h3 className="font-medium">Child Email</h3>
               <p className="text-sm text-gray-600">Share with parents to link accounts:</p>
-              <div className="mt-1 flex items-center">
-                <span className="bg-gray-100 px-3 py-1 rounded-md font-mono text-base font-semibold">
-                  {childId}
+              <div className="mt-1 flex items-center flex-wrap gap-2">
+                <span className="bg-gray-100 px-3 py-2 rounded-md font-mono text-sm font-semibold break-all max-w-full">
+                  {childEmail || "Loading email..."}
                 </span>
                 <button 
-                  onClick={copyChildId}
-                  className="ml-2 p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  onClick={copyChildEmail}
+                  className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  title="Copy email"
                 >
                   <Copy className="h-4 w-4 text-gray-600" />
                 </button>
-                {copied && <span className="ml-2 text-xs text-green-600">Copied!</span>}
+                {copied && <span className="text-xs text-green-600">Copied!</span>}
               </div>
             </div>
           </div>
@@ -164,7 +111,7 @@ export function SettingsPage() {
               <Edit className="h-5 w-5 text-green-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-medium">Nickname</h3>
+              <h3 className="font-medium">Name</h3>
               {editingNickname ? (
                 <div className="mt-1">
                   <input 
@@ -196,45 +143,6 @@ export function SettingsPage() {
               <h3 className="font-medium">Parent</h3>
               <p className="text-sm text-gray-600">Your parent: <span className="font-semibold">{parentName}</span></p>
             </div>
-          </div>
-        </div>
-
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className="bg-purple-100 p-2 rounded-full">
-              <Bell className="h-5 w-5 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium">Notifications</h3>
-              <p className="text-sm text-gray-600">Get reminders about lessons</p>
-            </div>
-            <Switch />
-          </div>
-        </div>
-
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className="bg-amber-100 p-2 rounded-full">
-              <Volume2 className="h-5 w-5 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium">Sound Effects</h3>
-              <p className="text-sm text-gray-600">Play sounds during activities</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-        </div>
-
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className="bg-gray-100 p-2 rounded-full">
-              <Moon className="h-5 w-5 text-gray-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium">Dark Mode</h3>
-              <p className="text-sm text-gray-600">Switch to dark theme</p>
-            </div>
-            <Switch />
           </div>
         </div>
 
