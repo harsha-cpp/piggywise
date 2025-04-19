@@ -4,11 +4,22 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ParentDashboard } from "@/components/parent/parent-dashboard";
-import { Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
+
+// Import ParentLoader dynamically with SSR disabled
+const ParentLoader = dynamic(() => import("@/components/loaders/ParentLoader"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )
+});
 
 export default function ParentDashboardPage() {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
+  const [forceLoader, setForceLoader] = useState(true); // Force loader to show for at least one cycle
   const [loadingTime, setLoadingTime] = useState(0);
   
   // Track loading time
@@ -30,26 +41,34 @@ export default function ParentDashboardPage() {
       redirect("/dashboard/child");
     } else if (status === "authenticated") {
       setIsLoading(false);
+      
+      // Allow loader to disappear after a minimum time
+      const timer = setTimeout(() => {
+        setForceLoader(false);
+      }, 2500); // This ensures loader is shown for at least 2.5 seconds
+      
+      // Handle navigation errors
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        // Prevent chunk load errors from being shown to the user
+        if (event.reason && typeof event.reason.message === 'string' && 
+            (event.reason.message.includes('ChunkLoadError') || 
+            event.reason.message.includes('Loading chunk'))) {
+          event.preventDefault();
+        }
+      };
+      
+      // Add event listener
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      }
     }
   }, [session, status]);
 
-  if (status === "loading" || isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white rounded-xl shadow-md p-6 max-w-md w-full text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Loading Parent Dashboard</h2>
-          <p className="text-gray-600 mb-4">This may take a few moments...</p>
-          
-          {loadingTime > 5 && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-              <p className="font-medium">Taking longer than expected?</p>
-              <p className="mt-1">The server might be waking up from sleep mode. Please wait a moment.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+  if (status === "loading" || isLoading || forceLoader) {
+    return <ParentLoader fullscreen minPlayCount={1} />;
   }
 
   return (

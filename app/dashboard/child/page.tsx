@@ -12,6 +12,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import confetti from 'canvas-confetti';
 import { Task } from "@/components/parent/parent-tasks";
+import dynamic from "next/dynamic";
+
+// Import ChildLoader dynamically with SSR disabled
+const ChildLoader = dynamic(() => import("@/components/loaders/ChildLoader"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )
+});
 
 import { CharacterPanel } from "@/components/character-panel"
 import { ModuleCard } from "@/components/module-card"
@@ -27,6 +38,7 @@ export default function ChildDashboard() {
   const [activePage, setActivePage] = useState("home");
   const [hasCharacter, setHasCharacter] = useState(true); // Set to true by default to skip first-time experience for now
   const [isLoading, setIsLoading] = useState(true);
+  const [forceLoader, setForceLoader] = useState(true); // Force loader to show for at least one cycle
   const [nickname, setNickname] = useState(""); // Default empty
   const [parentName, setParentName] = useState("Mom"); // Default parent name
   const [userXP, setUserXP] = useState(350); // User's XP points
@@ -158,6 +170,29 @@ export default function ChildDashboard() {
       // Set nickname from session if available
       if (session?.user?.name) {
         setNickname(session.user.name);
+      }
+      
+      // Allow loader to disappear after a minimum time
+      const timer = setTimeout(() => {
+        setForceLoader(false);
+      }, 2500); // This ensures loader is shown for at least 2.5 seconds
+      
+      // Handle navigation errors
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        // Prevent chunk load errors from being shown to the user
+        if (event.reason && typeof event.reason.message === 'string' && 
+            (event.reason.message.includes('ChunkLoadError') || 
+            event.reason.message.includes('Loading chunk'))) {
+          event.preventDefault();
+        }
+      };
+      
+      // Add event listener
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       }
     }
   }, [session, status]);
@@ -597,32 +632,24 @@ export default function ChildDashboard() {
     }, 200);
   };
 
-  if (status === "loading" || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </div>
-    );
+  if (!hasCharacter) {
+    return <FirstTimeExperience onComplete={handleCharacterCreated} />;
+  }
+
+  if (isLoading || !session || forceLoader) {
+    return <ChildLoader fullscreen minPlayCount={1} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {!hasCharacter ? (
-        <FirstTimeExperience onComplete={handleCharacterCreated} />
-      ) : (
-        <>
-          <div className="container mx-auto px-4 py-6">
-            {renderPage()}
-          </div>
-          {/* Bottom Navigation */}
-          <BottomNavigation activeTab={activePage} onTabChange={setActivePage} />
-          
-          {/* Kid-friendly Gemini Chatbot */}
-          <KidChatbot />
-        </>
-      )}
+      <div className="container mx-auto px-4 py-6">
+        {renderPage()}
+      </div>
+      {/* Bottom Navigation */}
+      <BottomNavigation activeTab={activePage} onTabChange={setActivePage} />
+      
+      {/* Kid-friendly Gemini Chatbot */}
+      <KidChatbot />
     </div>
   )
 } 

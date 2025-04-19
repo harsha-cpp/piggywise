@@ -2,7 +2,17 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState, useCallback } from "react"
-import LandingLoader from "@/components/loaders/LandingLoader"
+import dynamic from "next/dynamic"
+
+// Import LandingLoader dynamically with SSR disabled
+const LandingLoader = dynamic(() => import("@/components/loaders/LandingLoader"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )
+})
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
