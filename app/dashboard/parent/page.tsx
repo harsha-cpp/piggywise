@@ -1,10 +1,10 @@
 "use client";
 
+// Updated parent dashboard without loader animations
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ParentDashboard } from "@/components/parent/parent-dashboard";
-import ParentLoader from "@/components/loaders/ParentLoader";
 
 export default function ParentDashboardPage() {
   const { data: session, status } = useSession();
