@@ -8,45 +8,57 @@ import ParentLoader from "@/components/loaders/ParentLoader";
 
 export default function ParentDashboardPage() {
   const { data: session, status } = useSession();
-  const [showLoader, setShowLoader] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [forceLoader, setForceLoader] = useState(true); // Force loader to show for at least one cycle
+  const [loadingTime, setLoadingTime] = useState(0);
   
-  // Handle redirects and loader timing
+  // Track loading time
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isLoading) {
+      timer = setInterval(() => {
+        setLoadingTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isLoading]);
+  
+  // Redirect if not logged in or not a parent
   useEffect(() => {
     if (status === "unauthenticated") {
       redirect("/login");
     } else if (session?.user && session.user.userType !== "PARENT") {
       redirect("/dashboard/child");
     } else if (status === "authenticated") {
-      // Show loader for at least 3 seconds for smooth animation
-      const timer = setTimeout(() => {
-        setShowLoader(false);
-      }, 3000);
+      setIsLoading(false);
       
-      // Add listener to handle navigation errors
-      window.addEventListener('unhandledrejection', (event) => {
+      // Allow loader to disappear after a minimum time
+      const timer = setTimeout(() => {
+        setForceLoader(false);
+      }, 2500); // This ensures loader is shown for at least 2.5 seconds
+      
+      // Handle navigation errors
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
         // Prevent chunk load errors from being shown to the user
-        if (event.reason && 
-            typeof event.reason.message === 'string' && 
+        if (event.reason && typeof event.reason.message === 'string' && 
             (event.reason.message.includes('ChunkLoadError') || 
-             event.reason.message.includes('Loading chunk'))) {
+            event.reason.message.includes('Loading chunk'))) {
           event.preventDefault();
         }
-      });
+      };
+      
+      // Add event listener
+      window.addEventListener('unhandledrejection', handleUnhandledRejection);
       
       return () => {
         clearTimeout(timer);
-        window.removeEventListener('unhandledrejection', () => {});
+        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       }
     }
   }, [session, status]);
 
-  // Show loader during authentication or for minimum animation time
-  if (status === "loading" || showLoader) {
-    return (
-      <div className="fixed inset-0 z-50 bg-background">
-        <ParentLoader fullscreen minPlayCount={1} />
-      </div>
-    );
+  if (status === "loading" || isLoading || forceLoader) {
+    return <ParentLoader fullscreen minPlayCount={1} />;
   }
 
   return (

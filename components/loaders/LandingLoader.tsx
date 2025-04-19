@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import Lottie from 'lottie-react';
+import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
+
+// Dynamically import Lottie with SSR disabled
+const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 interface LandingLoaderProps {
   fullscreen?: boolean;
@@ -76,14 +79,16 @@ const LandingLoader = ({
       className
     )}>
       <div className="w-full" style={{ maxWidth: '300px' }}>
-        <Lottie
-          lottieRef={lottieRef}
-          animationData={animationData}
-          loop={!canDismiss}
-          autoplay={true}
-          onComplete={handleAnimationComplete}
-          className="w-full h-full"
-        />
+        {isBrowser && animationData && (
+          <Lottie
+            lottieRef={lottieRef}
+            animationData={animationData}
+            loop={!canDismiss}
+            autoplay={true}
+            onComplete={handleAnimationComplete}
+            className="w-full h-full"
+          />
+        )}
       </div>
     </div>
   );
