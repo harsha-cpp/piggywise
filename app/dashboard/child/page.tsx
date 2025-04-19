@@ -167,22 +167,19 @@ export default function ChildDashboard() {
         setForceLoader(false);
       }, 2500); // This ensures loader is shown for at least 2.5 seconds
       
-      // Handle navigation errors
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Add listener to handle navigation errors
+      window.addEventListener('unhandledrejection', (event) => {
         // Prevent chunk load errors from being shown to the user
         if (event.reason && typeof event.reason.message === 'string' && 
-            (event.reason.message.includes('ChunkLoadError') || 
-            event.reason.message.includes('Loading chunk'))) {
+            event.reason.message.includes('ChunkLoadError') || 
+            event.reason.message.includes('Loading chunk')) {
           event.preventDefault();
         }
-      };
-      
-      // Add event listener
-      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      });
       
       return () => {
         clearTimeout(timer);
-        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        window.removeEventListener('unhandledrejection', () => {});
       }
     }
   }, [session, status]);

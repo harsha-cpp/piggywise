@@ -138,7 +138,11 @@ const ConnectionErrorFallback = ({ error, onRetry }: { error: string, onRetry: (
   );
 };
 
-export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) => void }) {
+export function ParentDashboard({ 
+  onTabChange
+}: { 
+  onTabChange?: (tab: string) => void;
+}) {
   const { data: session } = useSession();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("children");
@@ -163,7 +167,7 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
       }
       return response.json();
     },
-    enabled: !!session?.user,
+    enabled: !!session?.user
   });
 
   // Fetch marketplace modules
@@ -348,14 +352,22 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
   }
 
   if (isInitialDataLoading || !parentProfile) {
-    return <ParentLoader contained />;
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Empty loading state */}
+      </div>
+    );
   }
 
   const children = parentProfile.children || [];
 
   const renderTabContent = () => {
     if (isTabDataLoading) {
-      return <ParentLoader contained />;
+      return (
+        <div className="min-h-[400px] bg-background">
+          {/* Empty loading state */}
+        </div>
+      );
     }
 
     switch (activeTab) {

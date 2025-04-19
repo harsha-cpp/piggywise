@@ -6,6 +6,7 @@ import LandingLoader from "@/components/loaders/LandingLoader"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Use useCallback to memoize the function
   const handleLoad = useCallback(() => {
@@ -15,6 +16,11 @@ export default function Home() {
     }, 3000)
 
     return () => clearTimeout(timer)
+  }, [])
+
+  // Add a mounting effect to handle client-side only rendering
+  useEffect(() => {
+    setIsMounted(true)
   }, [])
 
   useEffect(() => {
@@ -50,8 +56,13 @@ export default function Home() {
     };
   }, [handleLoad])
 
-  if (isLoading) {
-    return <LandingLoader fullscreen minPlayCount={1} />
+  // Show loading state before content is ready
+  if (!isMounted || isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background">
+        <LandingLoader fullscreen minPlayCount={1} />
+      </div>
+    );
   }
 
   return (

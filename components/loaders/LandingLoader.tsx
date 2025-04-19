@@ -58,53 +58,24 @@ const LandingLoader = ({
     setPlayCount(prev => prev + 1);
   };
 
-  if (!isBrowser) {
+  // Empty div for server-side rendering or when animation is loading
+  if (!isBrowser || error || !animationData) {
     return (
       <div className={cn(
-        "flex items-center justify-center bg-background",
-        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-        contained && "max-w-md max-h-md",
+        "bg-background",
+        fullscreen ? "fixed inset-0 z-50" : "w-full h-full min-h-[400px]",
         className
-      )}>
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={cn(
-        "flex items-center justify-center bg-background",
-        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-        contained && "max-w-md max-h-md",
-        className
-      )}>
-        <div className="text-primary animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!animationData) {
-    return (
-      <div className={cn(
-        "flex items-center justify-center bg-background",
-        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-        contained && "max-w-md max-h-md",
-        className
-      )}>
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
+      )}></div>
     );
   }
 
   return (
     <div className={cn(
       "flex items-center justify-center bg-background",
-      fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-      contained && "max-w-md max-h-md",
+      fullscreen ? "fixed inset-0 z-50" : "w-full h-full min-h-[400px]",
       className
     )}>
-      <div className="flex items-center justify-center w-full h-full max-w-md max-h-md">
+      <div className="w-full" style={{ maxWidth: '300px' }}>
         <Lottie
           lottieRef={lottieRef}
           animationData={animationData}
@@ -112,10 +83,6 @@ const LandingLoader = ({
           autoplay={true}
           onComplete={handleAnimationComplete}
           className="w-full h-full"
-          style={{ maxWidth: '300px', margin: '0 auto', position: 'relative' }}
-          rendererSettings={{
-            preserveAspectRatio: 'xMidYMid slice'
-          }}
         />
       </div>
     </div>
