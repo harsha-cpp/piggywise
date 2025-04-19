@@ -22,8 +22,16 @@ const ChildLoader = ({
   const [playCount, setPlayCount] = useState(0);
   const [canDismiss, setCanDismiss] = useState(false);
   const lottieRef = useRef<any>(null);
+  const [isBrowser, setIsBrowser] = useState(false);
+  
+  // Check if we're in the browser
+  useEffect(() => {
+    setIsBrowser(true);
+  }, []);
 
   useEffect(() => {
+    if (!isBrowser) return;
+    
     const fetchAnimation = async () => {
       try {
         const response = await fetch('/lottie/Piggydance.json');
@@ -37,7 +45,7 @@ const ChildLoader = ({
     };
 
     fetchAnimation();
-  }, []);
+  }, [isBrowser]);
 
   // Monitor animation completion
   useEffect(() => {
@@ -49,6 +57,19 @@ const ChildLoader = ({
   const handleAnimationComplete = () => {
     setPlayCount(prev => prev + 1);
   };
+
+  if (!isBrowser) {
+    return (
+      <div className={cn(
+        "flex items-center justify-center bg-background",
+        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
+        contained && "max-w-md max-h-md",
+        className
+      )}>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -83,7 +104,7 @@ const ChildLoader = ({
       contained && "max-w-md max-h-md",
       className
     )}>
-      <div className="max-w-xs w-full">
+      <div className="flex items-center justify-center w-full h-full max-w-md max-h-md">
         <Lottie
           lottieRef={lottieRef}
           animationData={animationData}
@@ -91,7 +112,10 @@ const ChildLoader = ({
           autoplay={true}
           onComplete={handleAnimationComplete}
           className="w-full h-full"
-          style={{ maxWidth: '280px', margin: '0 auto' }}
+          style={{ maxWidth: '280px', margin: '0 auto', position: 'relative' }}
+          rendererSettings={{
+            preserveAspectRatio: 'xMidYMid slice'
+          }}
         />
       </div>
     </div>

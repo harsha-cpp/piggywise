@@ -2,25 +2,10 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState, useCallback } from "react"
-import dynamic from "next/dynamic"
-
-// Create a custom loading component
-const LoadingSpinner = () => (
-  <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
-    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-    <p className="text-lg font-medium text-primary">Loading PiggyWise...</p>
-  </div>
-);
-
-// Import LandingLoader dynamically with SSR disabled
-const LandingLoader = dynamic(() => import("@/components/loaders/LandingLoader"), {
-  ssr: false,
-  loading: () => <LoadingSpinner />
-})
+import LandingLoader from "@/components/loaders/LandingLoader"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
 
   // Use useCallback to memoize the function
   const handleLoad = useCallback(() => {
@@ -30,11 +15,6 @@ export default function Home() {
     }, 3000)
 
     return () => clearTimeout(timer)
-  }, [])
-
-  // Add a mounting effect to handle client-side only rendering
-  useEffect(() => {
-    setIsMounted(true)
   }, [])
 
   useEffect(() => {
@@ -70,12 +50,6 @@ export default function Home() {
     };
   }, [handleLoad])
 
-  // Show loading spinner before client-side rendering is ready
-  if (!isMounted) {
-    return <LoadingSpinner />;
-  }
-
-  // Show the Lottie loader when mounted and still in loading state
   if (isLoading) {
     return <LandingLoader fullscreen minPlayCount={1} />
   }

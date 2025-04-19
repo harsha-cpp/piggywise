@@ -104,7 +104,7 @@ const ParentLoader = ({
       contained && "max-w-md max-h-md",
       className
     )}>
-      <div className="max-w-xs w-full">
+      <div className="flex items-center justify-center w-full h-full max-w-md max-h-md">
         <Lottie
           lottieRef={lottieRef}
           animationData={animationData}
@@ -112,7 +112,10 @@ const ParentLoader = ({
           autoplay={true}
           onComplete={handleAnimationComplete}
           className="w-full h-full"
-          style={{ maxWidth: '300px', margin: '0 auto' }}
+          style={{ maxWidth: '300px', margin: '0 auto', position: 'relative' }}
+          rendererSettings={{
+            preserveAspectRatio: 'xMidYMid slice'
+          }}
         />
       </div>
     </div>
