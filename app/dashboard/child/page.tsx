@@ -12,17 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import confetti from 'canvas-confetti';
 import { Task } from "@/components/parent/parent-tasks";
-import dynamic from "next/dynamic";
-
-// Import ChildLoader dynamically with SSR disabled
-const ChildLoader = dynamic(() => import("@/components/loaders/ChildLoader"), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  )
-});
+import ChildLoader from "@/components/loaders/ChildLoader";
 
 import { CharacterPanel } from "@/components/character-panel"
 import { ModuleCard } from "@/components/module-card"
@@ -177,22 +167,19 @@ export default function ChildDashboard() {
         setForceLoader(false);
       }, 2500); // This ensures loader is shown for at least 2.5 seconds
       
-      // Handle navigation errors
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Add listener to handle navigation errors
+      window.addEventListener('unhandledrejection', (event) => {
         // Prevent chunk load errors from being shown to the user
         if (event.reason && typeof event.reason.message === 'string' && 
-            (event.reason.message.includes('ChunkLoadError') || 
-            event.reason.message.includes('Loading chunk'))) {
+            event.reason.message.includes('ChunkLoadError') || 
+            event.reason.message.includes('Loading chunk')) {
           event.preventDefault();
         }
-      };
-      
-      // Add event listener
-      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      });
       
       return () => {
         clearTimeout(timer);
-        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        window.removeEventListener('unhandledrejection', () => {});
       }
     }
   }, [session, status]);

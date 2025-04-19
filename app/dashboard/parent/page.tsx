@@ -4,17 +4,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ParentDashboard } from "@/components/parent/parent-dashboard";
-import dynamic from "next/dynamic";
-
-// Import ParentLoader dynamically with SSR disabled
-const ParentLoader = dynamic(() => import("@/components/loaders/ParentLoader"), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  )
-});
+import ParentLoader from "@/components/loaders/ParentLoader";
 
 export default function ParentDashboardPage() {
   const { data: session, status } = useSession();
@@ -47,22 +37,19 @@ export default function ParentDashboardPage() {
         setForceLoader(false);
       }, 2500); // This ensures loader is shown for at least 2.5 seconds
       
-      // Handle navigation errors
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Add listener to handle navigation errors
+      window.addEventListener('unhandledrejection', (event) => {
         // Prevent chunk load errors from being shown to the user
         if (event.reason && typeof event.reason.message === 'string' && 
-            (event.reason.message.includes('ChunkLoadError') || 
-            event.reason.message.includes('Loading chunk'))) {
+            event.reason.message.includes('ChunkLoadError') || 
+            event.reason.message.includes('Loading chunk')) {
           event.preventDefault();
         }
-      };
-      
-      // Add event listener
-      window.addEventListener('unhandledrejection', handleUnhandledRejection);
+      });
       
       return () => {
         clearTimeout(timer);
-        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        window.removeEventListener('unhandledrejection', () => {});
       }
     }
   }, [session, status]);

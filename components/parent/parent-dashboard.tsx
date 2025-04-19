@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label"
 import { useSession, signOut } from "next-auth/react"
 import { Badge } from "@/components/ui/badge"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import ParentLoader from "@/components/loaders/ParentLoader"
 
 import LinkChildForm from "./link-child-form"
 import AssignModuleForm from "./assign-module-form"
@@ -324,11 +325,20 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
 
   // Handle sign out
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+    signOut({ callbackUrl: '/login' });
   };
 
-  // If there's a persistent error, show the error fallback
+  // Check if any critical data is loading
+  const isInitialDataLoading = isParentLoading;
+  
+  // Check if any tab-specific data is loading based on the active tab
+  const isTabDataLoading = 
+    (activeTab === "modules" && isModulesLoading) ||
+    (activeTab === "tasks" && isTasksLoading) ||
+    (activeTab === "studio" && isCreatedModulesLoading);
+
   if (parentError) {
+    // Return connection error fallback when there's a server error
     return (
       <ConnectionErrorFallback 
         error={parentError.message} 
@@ -337,17 +347,287 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
     );
   }
 
-  if (isParentLoading || !parentProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <p className="text-gray-500">Loading parent dashboard...</p>
-        </div>
-      </div>
-    );
+  if (isInitialDataLoading || !parentProfile) {
+    return <ParentLoader contained />;
   }
 
   const children = parentProfile.children || [];
+
+  const renderTabContent = () => {
+    if (isTabDataLoading) {
+      return <ParentLoader contained />;
+    }
+
+    switch (activeTab) {
+      case "children":
+        return (
+          <div className="space-y-3 sm:space-y-4">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+              <Card className="col-span-full">
+                <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+                  <CardTitle className="text-base sm:text-lg text-gray-900">My Child</CardTitle>
+                </CardHeader>
+                <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
+                  {!children.length ? (
+                    <div className="flex flex-col items-center justify-center p-3 sm:p-6 text-center">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 rounded-full bg-purple-100 flex items-center justify-center">
+                        <PlusCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
+                      </div>
+                      <h3 className="mb-1 sm:mb-2 text-sm sm:text-lg font-medium text-gray-900">No Child Linked Yet</h3>
+                      <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
+                        Link your child's account to start their financial education journey.
+                      </p>
+                      <div className="mt-3 sm:mt-4 grid gap-2 sm:gap-4 grid-cols-1 sm:grid-cols-2 max-w-md w-full">
+                        <div className="bg-blue-50 p-2 sm:p-3 rounded-lg flex items-start">
+                          <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" />
+                          <div className="text-left text-xs">
+                            <span className="font-medium block mb-0.5">Assign Modules</span>
+                            <span>Customize learning with age-appropriate lessons</span>
+                          </div>
+                        </div>
+                        <div className="bg-green-50 p-2 sm:p-3 rounded-lg flex items-start">
+                          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" />
+                          <div className="text-left text-xs">
+                            <span className="font-medium block mb-0.5">Track Progress</span>
+                            <span>Monitor learning journey and achievements</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 sm:space-y-4">
+                      {children.map((child: Child) => (
+                        <div key={child.id} className="bg-slate-50 rounded-lg p-3 sm:p-4">
+                          <div className="flex items-start justify-between mb-2 sm:mb-3">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Avatar className="w-10 h-10 sm:w-12 sm:h-12">
+                                <AvatarImage src={child.avatar} alt={child.name} />
+                                <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <h3 className="font-medium text-sm sm:text-lg text-gray-900">{child.name}</h3>
+                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 sm:py-0.5 text-gray-700">{child.relation}</Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 sm:mt-4">
+                            <Button 
+                              className="w-full flex items-center justify-center py-1.5 sm:py-2 h-auto" 
+                              onClick={() => setSelectedChildId(child.id)}
+                            >
+                              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                              <span className="text-xs sm:text-sm">View Progress</span>
+                            </Button>
+                            
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full h-8 sm:h-10"
+                                >
+                                  <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedChild(child);
+                                    setNewChildName(child.name);
+                                    setShowEditNameDialog(true);
+                                  }}
+                                >
+                                  <Pencil className="w-4 h-4 mr-2" />
+                                  Edit Name
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => {
+                                    setSelectedChild(child);
+                                    setShowUnlinkDialog(true);
+                                  }}
+                                >
+                                  <Unlink className="w-4 h-4 mr-2" />
+                                  Unlink Child
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {children.length ? (
+                <Card className="col-span-full">
+                  <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+                    <CardTitle className="text-base sm:text-lg">Assign Learning Module</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Select a module to assign to your child</CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
+                    <AssignModuleForm
+                      children={children}
+                      modules={modulesData?.modules || []}
+                      createdModules={createdModulesData?.modules || []}
+                      onAssign={async (childId: string, moduleId: string) => {
+                        const result = await assignModuleMutation.mutateAsync({ childId, moduleId });
+                        return { success: true, message: "Module assigned successfully" };
+                      }}
+                      selectedChildId={selectedChildId || children[0]?.id}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="col-span-full">
+                  <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+                    <CardTitle className="text-base sm:text-lg">Link Your Child</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Enter your child's email and select your relation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
+                    <LinkChildForm 
+                      onLinkChild={async (childEmail: string, relation: string) => {
+                        const result = await linkChildMutation.mutateAsync({ childEmail, relation });
+                        return { success: true, message: "Child linked successfully" };
+                      }}
+                      hasLinkedChild={children.length > 0} 
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        );
+      case "modules":
+        return (
+          <ModuleMarketplace
+            modules={modulesData?.modules || []}
+            createdModules={createdModulesData?.modules || []}
+            onAssignModule={(moduleId) => {
+              if (children.length > 0) {
+                assignModuleMutation.mutate({ childId: children[0].id, moduleId });
+              } else {
+                toast({
+                  title: "No child linked",
+                  description: "Please link a child to your account first",
+                  variant: "destructive",
+                })
+                setActiveTab("children")
+              }
+            }}
+            hasLinkedChild={children.length > 0}
+            setModuleToAssign={setModuleToAssign}
+            setShowAssignModal={setShowAssignModal}
+          />
+        );
+      case "progress":
+        return (
+          <Card>
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+              <CardTitle className="text-base sm:text-lg">Learning Progress</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                {children.length > 0 ? `Viewing progress for ${children.find((c: Child) => c.id === selectedChildId)?.name || 'your child'}` : "Link a child to view their progress"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
+              {children.length > 0 ? (
+                <>
+                  {progressData?.progressData?.length > 0 ? (
+                    <ChildProgressList progressData={progressData?.progressData || []} />
+                  ) : (
+                    <div className="p-4 sm:p-8 text-center text-muted-foreground">
+                      <Award className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
+                      <p className="text-sm">No modules have been assigned to this child yet</p>
+                      <Button 
+                        variant="outline" 
+                        className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
+                        onClick={() => setActiveTab("modules")}
+                      >
+                        Browse Modules
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="p-4 sm:p-8 text-center text-muted-foreground">
+                  <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
+                  <p className="text-sm">Please link a child to view their progress</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
+                    onClick={() => setActiveTab("children")}
+                  >
+                    Go to Link Child
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      case "studio":
+        return <ModuleStudio />;
+      case "tasks":
+        return (
+          <Card>
+            <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center text-base sm:text-lg">
+                    Manage Tasks <CheckSquare className="ml-2 h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Assign and track tasks for your child</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
+              {children.length > 0 ? (
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Tasks</h3>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-muted-foreground">
+                  <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
+                  <p className="text-sm">Please link a child to manage tasks</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
+                    onClick={() => setActiveTab("children")}
+                  >
+                    Go to Link Child
+                  </Button>
+                </div>
+              )}
+              {children.length > 0 ? (
+                <ParentTasks 
+                  tasks={isTasksLoading ? [] : (tasksData?.tasks || [])} 
+                  children={children}
+                />
+              ) : (
+                <div className="p-6 text-center text-muted-foreground">
+                  <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
+                  <p className="text-sm">Please link a child to manage tasks</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
+                    onClick={() => setActiveTab("children")}
+                  >
+                    Go to Link Child
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-purple-50">
@@ -419,8 +699,8 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
           <Button 
             variant="ghost"
             size="sm" 
-            className={`flex-1 h-12 rounded-md text-xs font-medium flex flex-col items-center justify-center py-1 px-0 ${activeTab === "marketplace" ? "bg-indigo-100 text-indigo-700" : ""}`}
-            onClick={() => setActiveTab("marketplace")}
+            className={`flex-1 h-12 rounded-md text-xs font-medium flex flex-col items-center justify-center py-1 px-0 ${activeTab === "modules" ? "bg-indigo-100 text-indigo-700" : ""}`}
+            onClick={() => setActiveTab("modules")}
           >
             <ShoppingBag className="h-3.5 w-3.5 mb-0.5" />
             <span>Market</span>
@@ -497,7 +777,7 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
         )}
 
         {/* Loading state */}
-        {isParentLoading ? (
+        {isInitialDataLoading ? (
           <div className="py-10 sm:py-20 text-center">
             <div className="inline-block animate-spin rounded-full border-4 border-gray-300 border-t-blue-600 h-8 w-8 sm:h-12 sm:w-12 mb-2 sm:mb-4"></div>
             <p className="text-sm sm:text-base text-gray-600">Loading your dashboard...</p>
@@ -508,7 +788,7 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
             <div className="overflow-x-auto pb-2 -mx-4 px-4">
               <TabsList className="w-full sm:w-auto grid grid-cols-5 min-w-[600px] sm:min-w-0">
                 <TabsTrigger value="children" onClick={() => onTabChange?.('children')}>My Child</TabsTrigger>
-                <TabsTrigger value="marketplace" onClick={() => onTabChange?.('marketplace')}>Marketplace</TabsTrigger>
+                <TabsTrigger value="modules" onClick={() => onTabChange?.('modules')}>Marketplace</TabsTrigger>
                 <TabsTrigger value="progress" onClick={() => onTabChange?.('progress')}>Progress</TabsTrigger>
                 <TabsTrigger value="studio" onClick={() => onTabChange?.('studio')}>Module Studio</TabsTrigger>
                 <TabsTrigger value="tasks" onClick={() => onTabChange?.('tasks')}>Tasks</TabsTrigger>
@@ -520,279 +800,9 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
         )}
         
         {/* Tab Content - Works with both mobile menu and desktop tabs */}
-        {!isParentLoading && (
+        {!isInitialDataLoading && (
           <div className="mt-2 sm:mt-4">
-            {/* Children List Tab */}
-            {activeTab === "children" && (
-              <div className="space-y-3 sm:space-y-4">
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  <Card className="col-span-full">
-                    <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
-                      <CardTitle className="text-base sm:text-lg text-gray-900">My Child</CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
-                      {!children.length ? (
-                        <div className="flex flex-col items-center justify-center p-3 sm:p-6 text-center">
-                          <div className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 rounded-full bg-purple-100 flex items-center justify-center">
-                            <PlusCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
-                          </div>
-                          <h3 className="mb-1 sm:mb-2 text-sm sm:text-lg font-medium text-gray-900">No Child Linked Yet</h3>
-                          <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
-                            Link your child's account to start their financial education journey.
-                          </p>
-                          <div className="mt-3 sm:mt-4 grid gap-2 sm:gap-4 grid-cols-1 sm:grid-cols-2 max-w-md w-full">
-                            <div className="bg-blue-50 p-2 sm:p-3 rounded-lg flex items-start">
-                              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" />
-                              <div className="text-left text-xs">
-                                <span className="font-medium block mb-0.5">Assign Modules</span>
-                                <span>Customize learning with age-appropriate lessons</span>
-                              </div>
-                            </div>
-                            <div className="bg-green-50 p-2 sm:p-3 rounded-lg flex items-start">
-                              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" />
-                              <div className="text-left text-xs">
-                                <span className="font-medium block mb-0.5">Track Progress</span>
-                                <span>Monitor learning journey and achievements</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-3 sm:space-y-4">
-                          {children.map((child: Child) => (
-                            <div key={child.id} className="bg-slate-50 rounded-lg p-3 sm:p-4">
-                              <div className="flex items-start justify-between mb-2 sm:mb-3">
-                                <div className="flex items-center gap-2 sm:gap-3">
-                                  <Avatar className="w-10 h-10 sm:w-12 sm:h-12">
-                                    <AvatarImage src={child.avatar} alt={child.name} />
-                                    <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <h3 className="font-medium text-sm sm:text-lg text-gray-900">{child.name}</h3>
-                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
-                                      <Badge variant="outline" className="text-xs px-1.5 py-0 sm:py-0.5 text-gray-700">{child.relation}</Badge>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 sm:mt-4">
-                                <Button 
-                                  className="w-full flex items-center justify-center py-1.5 sm:py-2 h-auto" 
-                                  onClick={() => setSelectedChildId(child.id)}
-                                >
-                                  <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                                  <span className="text-xs sm:text-sm">View Progress</span>
-                                </Button>
-                                
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full h-8 sm:h-10"
-                                    >
-                                      <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-48">
-                                    <DropdownMenuItem
-                                      onClick={() => {
-                                        setSelectedChild(child);
-                                        setNewChildName(child.name);
-                                        setShowEditNameDialog(true);
-                                      }}
-                                    >
-                                      <Pencil className="w-4 h-4 mr-2" />
-                                      Edit Name
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      className="text-red-600"
-                                      onClick={() => {
-                                        setSelectedChild(child);
-                                        setShowUnlinkDialog(true);
-                                      }}
-                                    >
-                                      <Unlink className="w-4 h-4 mr-2" />
-                                      Unlink Child
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {children.length ? (
-                    <Card className="col-span-full">
-                      <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
-                        <CardTitle className="text-base sm:text-lg">Assign Learning Module</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">Select a module to assign to your child</CardDescription>
-                      </CardHeader>
-                      <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
-                        <AssignModuleForm
-                          children={children}
-                          modules={modulesData?.modules || []}
-                          createdModules={createdModulesData?.modules || []}
-                          onAssign={async (childId: string, moduleId: string) => {
-                            const result = await assignModuleMutation.mutateAsync({ childId, moduleId });
-                            return { success: true, message: "Module assigned successfully" };
-                          }}
-                          selectedChildId={selectedChildId || children[0]?.id}
-                        />
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card className="col-span-full">
-                      <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
-                        <CardTitle className="text-base sm:text-lg">Link Your Child</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">
-                          Enter your child's email and select your relation
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
-                        <LinkChildForm 
-                          onLinkChild={async (childEmail: string, relation: string) => {
-                            const result = await linkChildMutation.mutateAsync({ childEmail, relation });
-                            return { success: true, message: "Child linked successfully" };
-                          }}
-                          hasLinkedChild={children.length > 0} 
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Module Marketplace Tab */}
-            {activeTab === "marketplace" && (
-              <ModuleMarketplace
-                modules={modulesData?.modules || []}
-                createdModules={createdModulesData?.modules || []}
-                onAssignModule={(moduleId) => {
-                  if (children.length > 0) {
-                    assignModuleMutation.mutate({ childId: children[0].id, moduleId });
-                  } else {
-                    toast({
-                      title: "No child linked",
-                      description: "Please link a child to your account first",
-                      variant: "destructive",
-                    })
-                    setActiveTab("children")
-                  }
-                }}
-                hasLinkedChild={children.length > 0}
-                setModuleToAssign={setModuleToAssign}
-                setShowAssignModal={setShowAssignModal}
-              />
-            )}
-
-            {/* Progress Tab */}
-            {activeTab === "progress" && (
-              <Card>
-                <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
-                  <CardTitle className="text-base sm:text-lg">Learning Progress</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    {children.length > 0 ? `Viewing progress for ${children.find((c: Child) => c.id === selectedChildId)?.name || 'your child'}` : "Link a child to view their progress"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
-                  {children.length > 0 ? (
-                    <>
-                      {progressData?.progressData?.length > 0 ? (
-                        <ChildProgressList progressData={progressData?.progressData || []} />
-                      ) : (
-                        <div className="p-4 sm:p-8 text-center text-muted-foreground">
-                          <Award className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
-                          <p className="text-sm">No modules have been assigned to this child yet</p>
-                          <Button 
-                            variant="outline" 
-                            className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
-                            onClick={() => setActiveTab("marketplace")}
-                          >
-                            Browse Modules
-                          </Button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="p-4 sm:p-8 text-center text-muted-foreground">
-                      <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
-                      <p className="text-sm">Please link a child to view their progress</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
-                        onClick={() => setActiveTab("children")}
-                      >
-                        Go to Link Child
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Module Studio Tab */}
-            {activeTab === "studio" && (
-              <ModuleStudio />
-            )}
-
-            {/* Tasks Tab */}
-            {activeTab === "tasks" && (
-              <Card>
-                <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center text-base sm:text-lg">
-                        Manage Tasks <CheckSquare className="ml-2 h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-                      </CardTitle>
-                      <CardDescription className="text-xs sm:text-sm">Assign and track tasks for your child</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
-                  {children.length > 0 ? (
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium">Tasks</h3>
-                    </div>
-                  ) : (
-                    <div className="p-6 text-center text-muted-foreground">
-                      <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
-                      <p className="text-sm">Please link a child to manage tasks</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
-                        onClick={() => setActiveTab("children")}
-                      >
-                        Go to Link Child
-                      </Button>
-                    </div>
-                  )}
-                  {children.length > 0 ? (
-                    <ParentTasks 
-                      tasks={isTasksLoading ? [] : (tasksData?.tasks || [])} 
-                      children={children}
-                    />
-                  ) : (
-                    <div className="p-6 text-center text-muted-foreground">
-                      <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
-                      <p className="text-sm">Please link a child to manage tasks</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
-                        onClick={() => setActiveTab("children")}
-                      >
-                        Go to Link Child
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+            {renderTabContent()}
           </div>
         )}
       </main>
