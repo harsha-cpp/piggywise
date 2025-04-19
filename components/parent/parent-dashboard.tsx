@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label"
 import { useSession, signOut } from "next-auth/react"
 import { Badge } from "@/components/ui/badge"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import ParentLoader from "@/components/loaders/ParentLoader"
+import { Switch } from "@/components/ui/switch"
 
 import LinkChildForm from "./link-child-form"
 import AssignModuleForm from "./assign-module-form"
@@ -348,14 +348,38 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
   }
 
   if (isInitialDataLoading || !parentProfile) {
-    return <ParentLoader contained />;
+    return (
+      <div className="min-h-screen bg-purple-50 pt-6">
+        <div className="container px-2 sm:px-4 mx-auto max-w-6xl">
+          <Card className="mb-4 sm:mb-6 bg-indigo-600 text-white">
+            <CardContent className="flex items-center p-3 sm:p-6">
+              <div className="flex-1">
+                <h2 className="text-lg sm:text-2xl font-bold">
+                  Welcome back! 👋
+                </h2>
+                <p className="mt-0.5 sm:mt-1 text-xs sm:text-base text-indigo-100">
+                  Track your child's learning progress and assign modules.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="h-[60vh] flex items-center justify-center">
+            {/* Empty div for consistent height */}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const children = parentProfile.children || [];
 
   const renderTabContent = () => {
     if (isTabDataLoading) {
-      return <ParentLoader contained />;
+      return (
+        <div className="h-[60vh] flex items-center justify-center">
+          {/* Empty div for consistent height */}
+        </div>
+      );
     }
 
     switch (activeTab) {
@@ -780,9 +804,9 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
 
         {/* Loading state */}
         {isInitialDataLoading ? (
-          <div className="py-10 sm:py-20 flex flex-col items-center justify-center">
-            <ParentLoader contained />
-            <p className="text-sm sm:text-base text-gray-600 mt-4">Loading your dashboard...</p>
+          <div className="py-10 sm:py-10 h-[60vh] flex flex-col items-center justify-center">
+            {/* Empty div for consistent height */}
+            <p className="text-sm sm:text-base text-gray-600">Loading your dashboard...</p>
           </div>
         ) : (
           /* Dashboard Tabs - Only visible on non-mobile screens */
@@ -802,8 +826,8 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
             {/* Tab Content - Works with both mobile menu and desktop tabs */}
             <div className="mt-2 sm:mt-4">
               {isTabDataLoading ? (
-                <div className="h-64 flex items-center justify-center">
-                  <ParentLoader contained />
+                <div className="h-[60vh] flex items-center justify-center">
+                  {/* Empty div for consistent height */}
                 </div>
               ) : (
                 renderTabContent()
