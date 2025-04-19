@@ -658,11 +658,11 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 h-auto p-1">
                     <Avatar>
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt={parentProfile.name} />
-                      <AvatarFallback>{parentProfile.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt={isInitialDataLoading ? "User" : parentProfile?.name || "User"} />
+                      <AvatarFallback>{isInitialDataLoading ? "?" : parentProfile?.name?.charAt(0) || "?"}</AvatarFallback>
                     </Avatar>
                     <div className="hidden md:block">
-                      <p className="text-sm font-medium">{parentProfile.name}</p>
+                      <p className="text-sm font-medium">{isInitialDataLoading ? "Loading..." : parentProfile?.name}</p>
                     </div>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
@@ -670,7 +670,7 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-xs font-medium text-gray-500">Signed in as</p>
-                    <p className="text-sm font-medium truncate">{parentProfile.email}</p>
+                    <p className="text-sm font-medium truncate">{isInitialDataLoading ? "Loading..." : parentProfile?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
@@ -741,7 +741,9 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
         <Card className="mb-4 sm:mb-6 bg-indigo-600 text-white">
           <CardContent className="flex items-center p-3 sm:p-6">
             <div className="flex-1">
-              <h2 className="text-lg sm:text-2xl font-bold">Welcome back, {parentProfile.name} 👋</h2>
+              <h2 className="text-lg sm:text-2xl font-bold">
+                {isInitialDataLoading ? "Welcome back! 👋" : `Welcome back, ${parentProfile?.name} 👋`}
+              </h2>
               <p className="mt-0.5 sm:mt-1 text-xs sm:text-base text-indigo-100">
                 Track your child's learning progress and assign modules.
               </p>
@@ -778,32 +780,36 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
 
         {/* Loading state */}
         {isInitialDataLoading ? (
-          <div className="py-10 sm:py-20 text-center">
-            <div className="inline-block animate-spin rounded-full border-4 border-gray-300 border-t-blue-600 h-8 w-8 sm:h-12 sm:w-12 mb-2 sm:mb-4"></div>
-            <p className="text-sm sm:text-base text-gray-600">Loading your dashboard...</p>
+          <div className="py-10 sm:py-20 flex flex-col items-center justify-center">
+            <ParentLoader contained />
+            <p className="text-sm sm:text-base text-gray-600 mt-4">Loading your dashboard...</p>
           </div>
         ) : (
           /* Dashboard Tabs - Only visible on non-mobile screens */
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 hidden sm:block">
-            <div className="overflow-x-auto pb-2 -mx-4 px-4">
-              <TabsList className="w-full sm:w-auto grid grid-cols-5 min-w-[600px] sm:min-w-0">
-                <TabsTrigger value="children" onClick={() => onTabChange?.('children')}>My Child</TabsTrigger>
-                <TabsTrigger value="modules" onClick={() => onTabChange?.('modules')}>Marketplace</TabsTrigger>
-                <TabsTrigger value="progress" onClick={() => onTabChange?.('progress')}>Progress</TabsTrigger>
-                <TabsTrigger value="studio" onClick={() => onTabChange?.('studio')}>Module Studio</TabsTrigger>
-                <TabsTrigger value="tasks" onClick={() => onTabChange?.('tasks')}>Tasks</TabsTrigger>
-              </TabsList>
+          <>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 hidden sm:block">
+              <div className="overflow-x-auto pb-2 -mx-4 px-4">
+                <TabsList className="w-full sm:w-auto grid grid-cols-5 min-w-[600px] sm:min-w-0">
+                  <TabsTrigger value="children" onClick={() => onTabChange?.('children')}>My Child</TabsTrigger>
+                  <TabsTrigger value="modules" onClick={() => onTabChange?.('modules')}>Marketplace</TabsTrigger>
+                  <TabsTrigger value="progress" onClick={() => onTabChange?.('progress')}>Progress</TabsTrigger>
+                  <TabsTrigger value="studio" onClick={() => onTabChange?.('studio')}>Module Studio</TabsTrigger>
+                  <TabsTrigger value="tasks" onClick={() => onTabChange?.('tasks')}>Tasks</TabsTrigger>
+                </TabsList>
+              </div>
+            </Tabs>
+            
+            {/* Tab Content - Works with both mobile menu and desktop tabs */}
+            <div className="mt-2 sm:mt-4">
+              {isTabDataLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <ParentLoader contained />
+                </div>
+              ) : (
+                renderTabContent()
+              )}
             </div>
-
-            {/* Tab Content is rendered below */}
-          </Tabs>
-        )}
-        
-        {/* Tab Content - Works with both mobile menu and desktop tabs */}
-        {!isInitialDataLoading && (
-          <div className="mt-2 sm:mt-4">
-            {renderTabContent()}
-          </div>
+          </>
         )}
       </main>
 

@@ -30,12 +30,14 @@ export default function ParentDashboardPage() {
     } else if (session?.user && session.user.userType !== "PARENT") {
       redirect("/dashboard/child");
     } else if (status === "authenticated") {
-      setIsLoading(false);
-      
       // Allow loader to disappear after a minimum time
       const timer = setTimeout(() => {
-        setForceLoader(false);
-      }, 2500); // This ensures loader is shown for at least 2.5 seconds
+        setIsLoading(false);
+        // Wait a bit longer for the loader to finish its animation
+        setTimeout(() => {
+          setForceLoader(false);
+        }, 500);
+      }, 2000); // This ensures loader is shown for at least 2 seconds
       
       // Handle navigation errors
       const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -57,13 +59,19 @@ export default function ParentDashboardPage() {
     }
   }, [session, status]);
 
-  if (status === "loading" || isLoading || forceLoader) {
-    return <ParentLoader fullscreen minPlayCount={1} />;
-  }
-
+  // Use a consistent layout for both loading and loaded states
   return (
     <div className="min-h-screen bg-gray-50">
-      <ParentDashboard />
+      {(status === "loading" || isLoading || forceLoader) ? (
+        <div className="min-h-screen flex flex-col">
+          <div className="h-16 bg-white border-b shadow-sm"></div> {/* Placeholder for header */}
+          <div className="flex-1 flex items-center justify-center">
+            <ParentLoader fullscreen={false} contained />
+          </div>
+        </div>
+      ) : (
+        <ParentDashboard />
+      )}
     </div>
   );
 } 

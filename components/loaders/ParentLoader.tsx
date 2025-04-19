@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import Lottie from 'lottie-react';
+import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
+
+// Dynamically import Lottie with SSR disabled
+const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
 interface ParentLoaderProps {
   fullscreen?: boolean;
@@ -58,14 +61,16 @@ const ParentLoader = ({
     setPlayCount(prev => prev + 1);
   };
 
+  const containerClasses = cn(
+    "flex items-center justify-center",
+    fullscreen ? "fixed inset-0 z-50 bg-background" : 
+      contained ? "relative w-full h-64 my-4" : "w-full h-full min-h-[400px]",
+    className
+  );
+
   if (!isBrowser) {
     return (
-      <div className={cn(
-        "flex items-center justify-center bg-background",
-        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-        contained && "max-w-md max-h-md",
-        className
-      )}>
+      <div className={containerClasses}>
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -73,12 +78,7 @@ const ParentLoader = ({
 
   if (error) {
     return (
-      <div className={cn(
-        "flex items-center justify-center bg-background",
-        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-        contained && "max-w-md max-h-md",
-        className
-      )}>
+      <div className={containerClasses}>
         <div className="text-primary animate-pulse">Loading...</div>
       </div>
     );
@@ -86,37 +86,29 @@ const ParentLoader = ({
 
   if (!animationData) {
     return (
-      <div className={cn(
-        "flex items-center justify-center bg-background",
-        fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-        contained && "max-w-md max-h-md",
-        className
-      )}>
+      <div className={containerClasses}>
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className={cn(
-      "flex items-center justify-center bg-background",
-      fullscreen ? "fixed inset-0 z-50" : "w-full h-full",
-      contained && "max-w-md max-h-md",
-      className
-    )}>
-      <div className="flex items-center justify-center w-full h-full max-w-md max-h-md">
-        <Lottie
-          lottieRef={lottieRef}
-          animationData={animationData}
-          loop={!canDismiss}
-          autoplay={true}
-          onComplete={handleAnimationComplete}
-          className="w-full h-full"
-          style={{ maxWidth: '300px', margin: '0 auto', position: 'relative' }}
-          rendererSettings={{
-            preserveAspectRatio: 'xMidYMid slice'
-          }}
-        />
+    <div className={containerClasses}>
+      <div className="flex items-center justify-center w-full h-full" style={{ maxWidth: '300px' }}>
+        {isBrowser && animationData && (
+          <Lottie
+            lottieRef={lottieRef}
+            animationData={animationData}
+            loop={!canDismiss}
+            autoplay={true}
+            onComplete={handleAnimationComplete}
+            className="w-full h-full"
+            style={{ maxWidth: '100%', margin: '0 auto' }}
+            rendererSettings={{
+              preserveAspectRatio: 'xMidYMid slice'
+            }}
+          />
+        )}
       </div>
     </div>
   );
