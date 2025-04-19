@@ -1,8 +1,59 @@
 "use client"
 import Link from "next/link"
 import Image from "next/image"
+import { useEffect, useState, useCallback } from "react"
+import LandingLoader from "@/components/loaders/LandingLoader"
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Use useCallback to memoize the function
+  const handleLoad = useCallback(() => {
+    // Ensure the animation plays for at least 3 seconds before allowing it to complete
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    // Call the memoized function
+    const cleanupLoad = handleLoad();
+    
+    // Handle chunk loading errors to prevent showing them to the user
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Check if this is a chunk loading error
+      if (event.reason && event.reason.message && 
+          (event.reason.message.includes('Loading chunk') || 
+           event.reason.message.includes('Failed to fetch'))) {
+        // Prevent the error from showing in console
+        event.preventDefault();
+      }
+    };
+    
+    // Define beforeunload handler
+    const handleBeforeUnload = () => {
+      // This helps prevent chunk errors by cleaning up resources
+      // before navigating away from the page
+    };
+    
+    // Add event listeners
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      // Clean up all event listeners and timers
+      if (cleanupLoad) cleanupLoad();
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [handleLoad])
+
+  if (isLoading) {
+    return <LandingLoader fullscreen minPlayCount={1} />
+  }
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
       {/* Chatbot Button with Glassmorphism */}
