@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { PlayCircle, Check } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 // Module and lesson interfaces
 interface Lesson {
@@ -25,22 +26,38 @@ interface Module {
   lessons: Lesson[]
   completedLessons: number
   totalLessons: number
+  status?: string
+}
+
+interface Progress {
+  id: string
+  childId: string
+  moduleId: string
+  status: string
+  completedLessons: number
+  lastUpdated: string
 }
 
 interface ModuleViewerProps {
   module: Module
+  existingProgress?: Progress | null
 }
 
-export function ModuleViewer({ module }: ModuleViewerProps) {
+export function ModuleViewer({ module, existingProgress }: ModuleViewerProps) {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
   const [updatedModule, setUpdatedModule] = useState<Module>(module)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const { toast } = useToast()
   
   // Initialize with first lesson or first incomplete lesson
   useEffect(() => {
+    console.log("Module in ModuleViewer:", module);
+    console.log("Existing progress:", existingProgress);
+    
+    // Start with the first incomplete lesson, or first lesson if all are complete
     const firstIncomplete = module.lessons.find(l => !l.isCompleted)
     setSelectedLesson(firstIncomplete || module.lessons[0])
-  }, [module])
+  }, [module, existingProgress])
   
   // Handle video completion
   const handleVideoRef = (ref: HTMLVideoElement | null) => {
@@ -48,7 +65,7 @@ export function ModuleViewer({ module }: ModuleViewerProps) {
     
     videoRef.current = ref
     
-    const handleVideoEnded = () => {
+    const handleVideoEnded = async () => {
       if (!selectedLesson) return
       
       // Mark lesson as completed if not already
@@ -62,10 +79,19 @@ export function ModuleViewer({ module }: ModuleViewerProps) {
         )
         
         // Update module state with new lessons and completion count
+        const newCompletedLessons = updatedModule.completedLessons + 1
+        
+        // For modules with only one lesson, mark as COMPLETED when that lesson is done
+        let newStatus = "IN_PROGRESS";
+        if (updatedModule.lessons.length === 1 || newCompletedLessons >= updatedModule.totalLessons) {
+          newStatus = "COMPLETED";
+        }
+        
         const newModule = {
           ...updatedModule,
           lessons: updatedLessons,
-          completedLessons: updatedModule.completedLessons + 1
+          completedLessons: newCompletedLessons,
+          status: newStatus
         }
         
         setUpdatedModule(newModule)
@@ -74,6 +100,39 @@ export function ModuleViewer({ module }: ModuleViewerProps) {
         // Award XP for completing the lesson (25 XP per lesson)
         if (typeof window !== 'undefined' && window.earnXP) {
           window.earnXP(25)
+        }
+
+        // Save progress to the server
+        try {
+          const response = await fetch('/api/child/save-progress', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              moduleId: updatedModule.id,
+              completedLessons: newCompletedLessons,
+              status: newStatus,
+              lessonId: selectedLesson.id
+            }),
+          });
+          
+          const result = await response.json();
+          
+          if (!response.ok) {
+            console.error('Failed to update progress:', result.error);
+            console.error('Details:', result.details);
+          } else {
+            console.log('Progress saved successfully:', result);
+            // Show a toast notification
+            toast({
+              title: "Progress saved!",
+              description: "Your progress has been updated.",
+              duration: 3000,
+            });
+          }
+        } catch (error) {
+          console.error('Error saving progress:', error);
         }
         
         // Auto-advance to next lesson if available
@@ -84,6 +143,13 @@ export function ModuleViewer({ module }: ModuleViewerProps) {
           // Completed all lessons in the module, award additional XP
           if (typeof window !== 'undefined' && window.earnXP) {
             window.earnXP(50) // Bonus XP for completing the entire module
+            
+            // Show completion toast
+            toast({
+              title: "Module completed!",
+              description: "Congratulations! You've completed this learning module.",
+              duration: 5000,
+            })
           }
         }
       }

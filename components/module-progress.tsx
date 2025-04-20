@@ -5,8 +5,9 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar"
 import "react-circular-progressbar/dist/styles.css"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ArrowUpRight, Award, Clock } from "lucide-react"
+import { ArrowUpRight, Award, Clock, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 interface Module {
   id: string
@@ -35,18 +36,33 @@ export function ModuleProgress() {
   const [modules, setModules] = useState<Module[]>([])
   const [stats, setStats] = useState<ModuleStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   useEffect(() => {
     const fetchModules = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         const response = await fetch("/api/modules");
-        if (response.ok) {
-          const data = await response.json();
-          setModules(data.modules);
-          setStats(data.stats);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch modules: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log("Module progress data:", data);
+        
+        setModules(data.modules || []);
+        setStats(data.stats || {
+          totalModules: 0,
+          completedModules: 0,
+          totalLessons: 0,
+          completedLessons: 0,
+          overallProgress: 0
+        });
       } catch (error) {
         console.error("Failed to fetch modules:", error);
+        setError(error instanceof Error ? error.message : "Failed to load progress data");
       } finally {
         setIsLoading(false);
       }
@@ -59,6 +75,27 @@ export function ModuleProgress() {
     return (
       <div className="flex justify-center items-center h-40">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center gap-4">
+              <AlertTriangle className="h-12 w-12 text-amber-500" />
+              <p className="text-red-500">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()}
+                className="mt-2"
+              >
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -81,6 +118,7 @@ export function ModuleProgress() {
                     pathColor: `rgba(62, 152, 199, ${(stats?.overallProgress || 0) / 100})`,
                     textColor: '#3e98c7',
                     trailColor: '#d6d6d6',
+                    pathTransitionDuration: 0.5,
                   })}
                 />
               </div>
@@ -149,7 +187,7 @@ export function ModuleProgress() {
                       <h3 className="font-medium">{module.title}</h3>
                       <div className="mt-1 flex items-center">
                         <Progress 
-                          value={(module.completedLessons / module.totalLessons) * 100} 
+                          value={(module.completedLessons / Math.max(1, module.totalLessons)) * 100} 
                           className="h-2 w-32"
                         />
                         <span className="ml-2 text-xs text-gray-500">
@@ -169,6 +207,7 @@ export function ModuleProgress() {
           <Card>
             <CardContent className="p-8 text-center">
               <p className="text-gray-500">No modules available yet.</p>
+              <p className="text-sm text-gray-400 mt-2">Your parent can assign modules to you.</p>
             </CardContent>
           </Card>
         )}

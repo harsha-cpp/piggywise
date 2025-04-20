@@ -53,6 +53,19 @@ export default function ChildDashboard() {
     refetchOnWindowFocus: true,
   });
 
+  // Fetch modules assigned to the child
+  const { data: modulesData, isLoading: isModulesLoading } = useQuery({
+    queryKey: ["childModules"],
+    queryFn: async () => {
+      const response = await fetch(`/api/child/assigned-modules`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch modules");
+      }
+      return response.json();
+    },
+    enabled: !!session?.user?.id,
+  });
+
   const tasks = tasksData?.tasks || [];
   const childTasks = tasks.filter((task: Task) => task.childId === session?.user?.id);
   const completedTasks = childTasks.filter((task: Task) => task.status === "COMPLETED").length;
@@ -183,88 +196,6 @@ export default function ChildDashboard() {
       }
     }
   }, [session, status]);
-
-  // Mock data for modules
-  const modules = [
-    {
-      id: "1",
-      title: "Part 1",
-      description: "Find hidden treasures and learn about saving",
-      progress: 40,
-      image: "/placeholder.svg?height=200&width=200",
-      color: "from-amber-300 to-amber-500",
-      lessons: [
-        {
-          id: "p1-l1",
-          title: "Introduction to Saving",
-          duration: "5 min",
-          videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-          isCompleted: true
-        },
-        {
-          id: "p1-l2",
-          title: "Finding Hidden Money",
-          duration: "7 min",
-          videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-          isCompleted: false
-        }
-      ],
-      completedLessons: 1,
-      totalLessons: 2
-    },
-    {
-      id: "2",
-      title: "Part 2",
-      description: "Climb to the top by making smart choices",
-      progress: 40,
-      image: "/placeholder.svg?height=200&width=200",
-      color: "from-emerald-300 to-emerald-500",
-      lessons: [
-        {
-          id: "p2-l1",
-          title: "Smart Money Choices",
-          duration: "6 min",
-          videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-          isCompleted: true
-        },
-        {
-          id: "p2-l2",
-          title: "Budgeting Basics",
-          duration: "8 min",
-          videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-          isCompleted: false
-        }
-      ],
-      completedLessons: 1,
-      totalLessons: 2
-    },
-    {
-      id: "3",
-      title: "Part 3",
-      description: "Buy and sell to learn about markets",
-      progress: 40,
-      image: "/placeholder.svg?height=200&width=200",
-      color: "from-sky-300 to-sky-500",
-      lessons: [
-        {
-          id: "p3-l1",
-          title: "Introduction to Markets",
-          duration: "5 min",
-          videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-          isCompleted: true
-        },
-        {
-          id: "p3-l2",
-          title: "Buying and Selling",
-          duration: "7 min",
-          videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-          isCompleted: false
-        }
-      ],
-      completedLessons: 1,
-      totalLessons: 2
-    },
-  ]
 
   const handleCharacterCreated = () => {
     setHasCharacter(true)
@@ -524,22 +455,75 @@ export default function ChildDashboard() {
                   {/* Modules Section */}
                   <section className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-bold text-gray-800">Jump Right Back In</h2>
+                      <h2 className="text-xl font-bold text-gray-800">Learning Modules</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {modules.map((module) => (
-                        <ModuleCard 
-                          key={module.id}
-                          id={String(module.id)}
-                          title={module.title}
-                          description={module.description}
-                          progress={module.progress}
-                          thumbnailUrl={module.image}
-                          duration="10 min"
-                          colorClass={module.color}
-                        />
-                      ))}
-                    </div>
+                    
+                    {isModulesLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                      </div>
+                    ) : modulesData?.modules && modulesData.modules.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {modulesData.modules.map((module: any) => {
+                          // Calculate progress - if module has a status, use that to determine progress
+                          let progress = 0;
+                          if (module.progress) {
+                            // If we have progress data
+                            progress = module.progress.completedLessons / (module.contents?.length || 1) * 100;
+                          } else if (module.status === "COMPLETED") {
+                            progress = 100;
+                          } else if (module.status === "IN_PROGRESS") {
+                            progress = 50; // Default for in progress
+                          }
+                          
+                          // Determine if the module is completed
+                          const isCompleted = progress === 100;
+                          
+                          // Use a placeholder image if no thumbnailUrl is provided
+                          const thumbnailUrl = module.thumbnailUrl || "/images/placeholder-module.jpg";
+                          
+                          // Determine appropriate color class based on category
+                          let cardColorClass;
+                          switch(module.category) {
+                            case 'SAVINGS':
+                              cardColorClass = 'from-amber-400 to-amber-600';
+                              break;
+                            case 'INVESTING':
+                              cardColorClass = 'from-emerald-400 to-emerald-600';
+                              break;
+                            case 'BUDGETING':
+                              cardColorClass = 'from-blue-400 to-blue-600';
+                              break;
+                            case 'ENTREPRENEURSHIP':
+                              cardColorClass = 'from-purple-400 to-purple-600';
+                              break;
+                            default:
+                              cardColorClass = 'from-sky-400 to-sky-600';
+                          }
+                          
+                          return (
+                            <ModuleCard 
+                              key={module.id}
+                              id={String(module.id)}
+                              title={module.title || "Learning Module"}
+                              description={module.description || "Start your learning journey"}
+                              progress={progress} // Use calculated progress
+                              thumbnailUrl={thumbnailUrl}
+                              duration={module.totalDuration || `${(module.contents?.length || 1) * 5} min`}
+                              colorClass={cardColorClass}
+                              isNew={false}
+                              isCompleted={isCompleted}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded-xl p-6 text-center">
+                        <div className="mb-4 text-4xl">📚</div>
+                        <h3 className="text-lg font-semibold mb-2">No modules assigned</h3>
+                        <p className="text-gray-500 mb-4">Relax! Your parent hasn't assigned any modules yet.</p>
+                      </div>
+                    )}
                   </section>
                 </div>
 

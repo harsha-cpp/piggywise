@@ -100,6 +100,7 @@ model Module {
   creator       User               @relation("CreatedModules", fields: [creatorId], references: [id])
   assignments   ModuleAssignment[]
   contents      ModuleContent[]
+  progress      ModuleProgress[]   @relation("ModuleToProgress")
 }
 
 model ModuleContent {
@@ -134,6 +135,9 @@ model ModuleProgress {
   completedLessons Int      @default(0)
   lastUpdated      DateTime @default(now())
   child            User     @relation("ModuleProgress", fields: [childId], references: [id])
+  module           Module   @relation("ModuleToProgress", fields: [moduleId], references: [id])
+  
+  @@unique([childId, moduleId])
 }
 
 model Task {

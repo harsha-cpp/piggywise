@@ -1,9 +1,14 @@
+"use client";
+
 import Image from "next/image"
 import { ChevronLeft, PlayCircle, Check, Lock } from "lucide-react"
 import Link from "next/link"
 import { ModuleViewer } from "@/components/module-viewer"
 import { XpHandler } from "@/components/xp-handler"
-import { getModuleById } from "@/lib/features/modules"
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Module and lesson interfaces
 interface Lesson {
@@ -26,127 +31,70 @@ interface Module {
   lessons: Lesson[]
   completedLessons: number
   totalLessons: number
+  status: string
 }
 
-export default async function ModulePage({ params }: { params: { id: string } }) {
+export default function ModulePage() {
+  const params = useParams();
+  const moduleId = params.id as string;
+  
   // Fetch module data from API
-  const moduleId = params.id;
-  
-  // Mock function to fetch module data
-  async function getModuleData(id: string): Promise<Module | null> {
-    try {
-      // Mock API response data
-      const modules = [
-        {
-          id: "1",
-          title: "Part 1",
-          description: "Find hidden treasures and learn about saving",
-          thumbnailUrl: "/placeholder.svg?height=200&width=200",
-          instructor: "Ms. Money",
-          totalDuration: "12 min",
-          objectives: [
-            "Understand the importance of saving money",
-            "Learn how to identify small saving opportunities",
-            "Create a basic saving plan"
-          ],
-          lessons: [
-            {
-              id: "p1-l1",
-              title: "Introduction to Saving",
-              duration: "5 min",
-              videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-              isCompleted: true
-            },
-            {
-              id: "p1-l2",
-              title: "Finding Hidden Money",
-              duration: "7 min",
-              videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-              isCompleted: false
-            }
-          ],
-          completedLessons: 1,
-          totalLessons: 2
-        },
-        {
-          id: "2",
-          title: "Part 2",
-          description: "Climb to the top by making smart choices",
-          thumbnailUrl: "/placeholder.svg?height=200&width=200",
-          instructor: "Mr. Budget",
-          totalDuration: "14 min",
-          objectives: [
-            "Learn to make informed spending decisions",
-            "Understand budget basics",
-            "Prioritize needs vs wants"
-          ],
-          lessons: [
-            {
-              id: "p2-l1",
-              title: "Smart Money Choices",
-              duration: "6 min",
-              videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-              isCompleted: true
-            },
-            {
-              id: "p2-l2",
-              title: "Budgeting Basics",
-              duration: "8 min",
-              videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-              isCompleted: false
-            }
-          ],
-          completedLessons: 1,
-          totalLessons: 2
-        },
-        {
-          id: "3",
-          title: "Part 3",
-          description: "Buy and sell to learn about markets",
-          thumbnailUrl: "/placeholder.svg?height=200&width=200",
-          instructor: "Dr. Market",
-          totalDuration: "12 min",
-          objectives: [
-            "Understand how markets work",
-            "Learn buying and selling basics",
-            "Develop market awareness"
-          ],
-          lessons: [
-            {
-              id: "p3-l1",
-              title: "Introduction to Markets",
-              duration: "5 min",
-              videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-              isCompleted: true
-            },
-            {
-              id: "p3-l2",
-              title: "Buying and Selling",
-              duration: "7 min",
-              videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-              isCompleted: false
-            }
-          ],
-          completedLessons: 1,
-          totalLessons: 2
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["module", moduleId],
+    queryFn: async () => {
+      const response = await fetch(`/api/child/modules/${moduleId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Module not found");
         }
-      ];
-      
-      const foundModule = modules.find(m => m.id === id);
-      return foundModule || null;
-    } catch (error) {
-      console.error("Error fetching module:", error);
-      return null;
+        throw new Error("Failed to load module");
+      }
+      return response.json();
     }
+  });
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="bg-gray-100 min-h-screen pb-20">
+        <div className="container mx-auto px-4 py-4">
+          <Link 
+            href="/dashboard/child"
+            className="text-black flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
+          >
+            <ChevronLeft className="h-5 w-5" />
+            <span>Back to Dashboard</span>
+          </Link>
+          
+          <div className="mb-4">
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-2 w-full" />
+          </div>
+          
+          <div className="bg-white rounded-xl p-6 shadow-md">
+            <Skeleton className="h-40 w-full mb-4" />
+            <Skeleton className="h-6 w-3/4 mb-3" />
+            <Skeleton className="h-4 w-1/2 mb-6" />
+            
+            <div className="space-y-3">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
-  
-  const module = await getModuleData(moduleId);
-  
-  if (!module) {
+
+  // Handle error state
+  if (error || !data?.module) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
-          <p className="text-lg font-medium text-gray-700">Module not found</p>
+          <p className="text-lg font-medium text-gray-700">
+            {error instanceof Error ? error.message : "Module not found"}
+          </p>
           <Link href="/dashboard/child" className="mt-4 px-4 py-2 inline-block bg-blue-500 text-white rounded-lg hover:bg-blue-600">
             Back to Dashboard
           </Link>
@@ -155,8 +103,29 @@ export default async function ModulePage({ params }: { params: { id: string } })
     );
   }
   
-  // Calculate progress
-  const progressPercentage = Math.round((module.completedLessons / module.totalLessons) * 100);
+  const module = data.module;
+  
+  // Calculate progress - use completed lessons count and status to determine progress
+  let progressPercentage = 0;
+  
+  // If module has only one lesson and the lesson is completed, show 100%
+  if (module.lessons.length === 1 && module.lessons[0].isCompleted) {
+    progressPercentage = 100;
+  } 
+  // Otherwise, if module has lessons, calculate percentage
+  else if (module.totalLessons > 0) {
+    progressPercentage = Math.round((module.completedLessons / module.totalLessons) * 100);
+  }
+  
+  // Force 100% if status is COMPLETED
+  if (module.status === "COMPLETED") {
+    progressPercentage = 100;
+  }
+  
+  // Log for debugging
+  console.log("Module data:", module);
+  console.log("Progress data:", data.progress);
+  console.log("Progress percentage:", progressPercentage);
   
   return (
     <div className="bg-gray-100 min-h-screen pb-20">
@@ -185,7 +154,10 @@ export default async function ModulePage({ params }: { params: { id: string } })
         </div>
         
         {/* Pass the module data to a client component */}
-        <ModuleViewer module={module} />
+        <ModuleViewer 
+          module={module} 
+          existingProgress={data.progress} 
+        />
         <XpHandler />
       </div>
     </div>
