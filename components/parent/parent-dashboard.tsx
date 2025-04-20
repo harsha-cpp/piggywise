@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Bell, ChevronDown, User, Award, AlertTriangle, RefreshCw, WifiOff, ServerCrash, LogOut, Home, ShoppingBag, TrendingUp, BookOpen, Medal, PlusCircle, Pencil, Unlink, Eye, MoreVertical, CheckSquare } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -351,20 +352,38 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
     return (
       <div className="min-h-screen bg-purple-50 pt-6">
         <div className="container px-2 sm:px-4 mx-auto max-w-6xl">
-          <Card className="mb-4 sm:mb-6 bg-indigo-600 text-white">
-            <CardContent className="flex items-center p-3 sm:p-6">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="mb-4 sm:mb-6 bg-indigo-600 text-white rounded-lg shadow-md overflow-hidden"
+          >
+            <div className="flex items-center p-3 sm:p-6">
               <div className="flex-1">
-                <h2 className="text-lg sm:text-2xl font-bold">
+                <motion.h2 
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  className="text-lg sm:text-2xl font-bold"
+                >
                   Welcome back! 👋
-                </h2>
-                <p className="mt-0.5 sm:mt-1 text-xs sm:text-base text-indigo-100">
+                </motion.h2>
+                <motion.p 
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut", delay: 0.3 }}
+                  className="mt-0.5 sm:mt-1 text-xs sm:text-base text-indigo-100"
+                >
                   Track your child's learning progress and assign modules.
-                </p>
+                </motion.p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
           <div className="h-[60vh] flex items-center justify-center">
-            {/* Empty div for consistent height */}
+            <motion.div 
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+            >
+              <p className="text-sm sm:text-base text-gray-600">Loading your dashboard...</p>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -761,24 +780,67 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
 
       {/* Main Content */}
       <main className="container px-2 sm:px-4 mx-auto mt-2 sm:mt-6 max-w-6xl">
-        {/* Welcome Banner - Only show when data is loaded */}
-        {!isInitialDataLoading && (
-          <Card className="mb-4 sm:mb-6 bg-indigo-600 text-white">
-            <CardContent className="flex items-center p-3 sm:p-6">
-              <div className="flex-1">
-                <h2 className="text-lg sm:text-2xl font-bold">
-                  {`Welcome back, ${parentProfile?.name} 👋`}
-                </h2>
-                <p className="mt-0.5 sm:mt-1 text-xs sm:text-base text-indigo-100">
-                  Track your child's learning progress and assign modules.
-                </p>
-              </div>
-              <div className="hidden md:block">
-                <img src="/placeholder.svg?height=120&width=200" alt="Education illustration" className="h-24 sm:h-32" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Welcome Banner with animations */}
+        <AnimatePresence mode="wait">
+          {!isInitialDataLoading ? (
+            <motion.div
+              key="welcome-banner"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="mb-4 sm:mb-6"
+            >
+              <Card className="bg-indigo-600 text-white overflow-hidden">
+                <CardContent className="flex items-center p-3 sm:p-6">
+                  <div className="flex-1">
+                    <motion.h2 
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="text-lg sm:text-2xl font-bold"
+                    >
+                      {`Welcome back, ${parentProfile?.name} 👋`}
+                    </motion.h2>
+                    <motion.p 
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="mt-0.5 sm:mt-1 text-xs sm:text-base text-indigo-100"
+                    >
+                      Track your child's learning progress and assign modules.
+                    </motion.p>
+                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="hidden md:block"
+                  >
+                    <img src="/placeholder.svg?height=120&width=200" alt="Education illustration" className="h-24 sm:h-32" />
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="loading-state"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="py-10 sm:py-10 h-[60vh] flex flex-col items-center justify-center"
+            >
+              <motion.p 
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                className="text-sm sm:text-base text-gray-600"
+              >
+                Loading...
+              </motion.p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Error state */}
         {parentError && (
@@ -826,13 +888,36 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
             
             {/* Tab Content - Works with both mobile menu and desktop tabs */}
             <div className="mt-2 sm:mt-4">
-              {isTabDataLoading ? (
-                <div className="h-[60vh] flex items-center justify-center">
-                  <p className="text-sm sm:text-base text-gray-600">Loading...</p>
-                </div>
-              ) : (
-                renderTabContent()
-              )}
+              <AnimatePresence mode="wait">
+                {isTabDataLoading ? (
+                  <motion.div
+                    key="tab-loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="h-[60vh] flex items-center justify-center"
+                  >
+                    <motion.p 
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      className="text-sm sm:text-base text-gray-600"
+                    >
+                      Loading...
+                    </motion.p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={`tab-${activeTab}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {renderTabContent()}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </>
         )}
