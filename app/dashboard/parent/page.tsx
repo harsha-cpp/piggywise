@@ -1,27 +1,16 @@
 "use client";
 
 // Updated parent dashboard without loader animations
-import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { redirect, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ParentDashboard } from "@/components/parent/parent-dashboard";
 
 export default function ParentDashboardPage() {
   const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
-  const [forceLoader, setForceLoader] = useState(true); // Force loader to show for at least one cycle
-  const [loadingTime, setLoadingTime] = useState(0);
-  
-  // Track loading time
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isLoading) {
-      timer = setInterval(() => {
-        setLoadingTime(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isLoading]);
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   
   // Redirect if not logged in or not a parent
   useEffect(() => {
@@ -29,49 +18,63 @@ export default function ParentDashboardPage() {
       redirect("/login");
     } else if (session?.user && session.user.userType !== "PARENT") {
       redirect("/dashboard/child");
-    } else if (status === "authenticated") {
-      // Allow loader to disappear after a minimum time
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-        // Wait a bit longer for the loader to finish its animation
-        setTimeout(() => {
-          setForceLoader(false);
-        }, 500);
-      }, 2000); // This ensures loader is shown for at least 2 seconds
-      
-      // Handle navigation errors
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-        // Prevent chunk load errors from being shown to the user
-        if (event.reason && typeof event.reason.message === 'string' && 
-            (event.reason.message.includes('ChunkLoadError') || 
-            event.reason.message.includes('Loading chunk'))) {
-          event.preventDefault();
-        }
-      };
-      
-      // Add event listener
-      window.addEventListener('unhandledrejection', handleUnhandledRejection);
-      
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      }
     }
   }, [session, status]);
 
-  // Use a consistent layout for both loading and loaded states
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {(status === "loading" || isLoading || forceLoader) ? (
-        <div className="min-h-screen flex flex-col">
-          <div className="h-16 bg-white border-b shadow-sm"></div> {/* Placeholder for header */}
-          <div className="flex-1 flex items-center justify-center">
-            <ParentLoader fullscreen={false} contained />
-          </div>
-        </div>
-      ) : (
+  const handleLogout = async () => {
+    setIsLoading(true);
+    await signOut({ redirect: true, callbackUrl: "/login" });
+  };
+
+  const goToDashboard = () => {
+    setShowDashboard(true);
+  };
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  
+  if (showDashboard) {
+    return (
+      <div className="min-h-screen bg-gray-50">
         <ParentDashboard />
-      )}
+      </div>
+    );
+  }
+
+  // Always show the confirmation screen first
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 bg-gray-50">
+      <div className="w-full max-w-md p-4 sm:p-6 bg-white rounded-lg shadow-md">
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-lg sm:text-xl font-bold">Login Success</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
+            You're currently logged in as {session?.user?.name || session?.user?.email} ({session?.user?.userType || 'USER'})
+          </p>
+        </div>
+        
+        <div className="flex flex-col space-y-3 sm:space-y-4">
+          <button
+            onClick={goToDashboard}
+            className="w-full p-2.5 sm:p-3 bg-green-800 text-white text-sm sm:text-base rounded hover:bg-green-900 transition-colors"
+          >
+            Go to Dashboard
+          </button>
+          
+          <button
+            onClick={handleLogout}
+            className="w-full p-2.5 sm:p-3 bg-gray-200 text-gray-800 text-sm sm:text-base rounded hover:bg-gray-300 transition-colors"
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging out..." : "Login with a different account"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 } 

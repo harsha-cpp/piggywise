@@ -53,8 +53,8 @@ export default function Login() {
         return
       }
 
-      // Successful login - will be redirected by useEffect when session updates
-      router.push("/dashboard");
+      // Successful login - let the session update handle the confirmation screen
+      // No redirection needed here as the component will re-render with authenticated status
     } catch (error) {
       setError("An error occurred. Please try again.")
       console.error("Login error:", error)
@@ -71,19 +71,22 @@ export default function Login() {
   }
 
   if (status === "authenticated") {
+    const userType = session?.user?.userType || 'USER';
+    const dashboardPath = userType === "PARENT" ? "/dashboard/parent" : "/dashboard/child";
+    
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] px-4 sm:px-6">
         <div className="w-full max-w-md p-4 sm:p-6 bg-white rounded-lg shadow-md">
           <div className="text-center mb-4 sm:mb-6">
-            <h1 className="text-lg sm:text-xl font-bold">Already Logged In</h1>
+            <h1 className="text-lg sm:text-xl font-bold">Login Success</h1>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">
-              You're currently logged in as {session?.user?.name || session?.user?.email} ({session?.user?.userType || 'USER'})
+              You're currently logged in as {session?.user?.name || session?.user?.email} ({userType})
             </p>
           </div>
           
           <div className="flex flex-col space-y-3 sm:space-y-4">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push(dashboardPath)}
               className="w-full p-2.5 sm:p-3 bg-green-800 text-white text-sm sm:text-base rounded hover:bg-green-900 transition-colors"
             >
               Go to Dashboard
@@ -94,7 +97,7 @@ export default function Login() {
               className="w-full p-2.5 sm:p-3 bg-gray-200 text-gray-800 text-sm sm:text-base rounded hover:bg-gray-300 transition-colors"
               disabled={isLoading}
             >
-              {isLoading ? "Logging out..." : "Log out and switch accounts"}
+              {isLoading ? "Logging out..." : "Login with a different account"}
             </button>
           </div>
         </div>

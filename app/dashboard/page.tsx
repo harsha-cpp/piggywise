@@ -10,13 +10,8 @@ export default function DashboardRedirect() {
   useEffect(() => {
     if (status === "unauthenticated") {
       redirect("/login");
-    } else if (status === "authenticated") {
-      if (session?.user?.userType === "CHILD") {
-        redirect("/dashboard/child");
-      } else if (session?.user?.userType === "PARENT") {
-        redirect("/dashboard/parent");
-      }
     }
+    // No auto-redirect to specific dashboards - let the confirmation screen handle it
   }, [session, status]);
   
   // Loading state while checking authentication

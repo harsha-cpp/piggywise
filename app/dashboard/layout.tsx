@@ -14,6 +14,8 @@ export default function DashboardLayout({
   
   // Check if this is the child dashboard
   const isChildDashboard = pathname.startsWith("/dashboard/child");
+  const isParentDashboard = pathname === "/dashboard/parent";
+  const isMainDashboard = pathname === "/dashboard";
   
   if (status === "loading") {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -23,12 +25,14 @@ export default function DashboardLayout({
     redirect("/login");
   }
   
-  // User is logged in, determine if they're in the correct dashboard
-  if (session?.user?.userType === "CHILD" && !pathname.startsWith("/dashboard/child")) {
+  // Only redirect users if they're trying to access the wrong dashboard type
+  // For example, a child user trying to access parent dashboard
+  if (session?.user?.userType === "CHILD" && pathname.startsWith("/dashboard/parent")) {
     redirect("/dashboard/child");
   }
   
-  if (session?.user?.userType === "PARENT" && !pathname.startsWith("/dashboard/parent")) {
+  // Only redirect parent users if they're trying to access child dashboard
+  if (session?.user?.userType === "PARENT" && pathname.startsWith("/dashboard/child")) {
     redirect("/dashboard/parent");
   }
   
