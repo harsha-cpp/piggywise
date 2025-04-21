@@ -28,8 +28,7 @@ const nextConfig = {
     parallelServerCompiles: true,
   },
   reactStrictMode: true,
-  swcMinify: true,
-  output: 'server'
+  output: 'standalone'
 }
 
 if (userConfig) {

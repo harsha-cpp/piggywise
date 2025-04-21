@@ -1,7 +1,7 @@
 "use client";
 
 import { SettingsPage } from "@/components/settings-page";
-import { BottomNavigation } from "@/components/bottom-navigation";
+import { TopNavigation } from "@/components/top-navigation";
 import { KidChatbot } from "@/components/kid-chatbot";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
@@ -30,10 +30,10 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container py-6 max-w-5xl mx-auto">
+      <TopNavigation activeTab="settings" />
+      <div className="container py-6 pt-20 max-w-5xl mx-auto">
         <SettingsPage />
       </div>
-      <BottomNavigation activeTab="settings" />
       <KidChatbot />
     </div>
   );

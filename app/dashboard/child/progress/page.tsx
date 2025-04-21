@@ -1,7 +1,7 @@
 "use client";
 
 import { ModuleProgress } from "@/components/module-progress";
-import { BottomNavigation } from "@/components/bottom-navigation";
+import { TopNavigation } from "@/components/top-navigation";
 import { KidChatbot } from "@/components/kid-chatbot";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
@@ -31,14 +31,14 @@ export default function ProgressPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container py-6 space-y-6 max-w-5xl mx-auto">
+      <TopNavigation activeTab="progress" />
+      <div className="container py-6 pt-20 space-y-6 max-w-5xl mx-auto">
         <PageHeader
           heading="Your Learning Progress"
           subheading="Track your achievements and keep learning"
         />
         <ModuleProgress />
       </div>
-      <BottomNavigation activeTab="progress" onTabChange={() => {}} />
       <KidChatbot />
     </div>
   );

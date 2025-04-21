@@ -6,7 +6,8 @@ import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import ChildTasks from "@/components/child/child-tasks"
 import { Loader2 } from "lucide-react"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
+import { KidChatbot } from "@/components/kid-chatbot"
 
 export default function ChildTasksPage() {
   const { data: session, status } = useSession()
@@ -55,16 +56,15 @@ export default function ChildTasksPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-24">
-      <div className="mt-6">
+    <div className="min-h-screen bg-gray-50">
+      <TopNavigation activeTab="tasks" />
+      <div className="container py-6 pt-20 max-w-5xl mx-auto">
         <ChildTasks 
           tasks={tasksData?.tasks || []} 
           childId={session?.user?.id || ""}
         />
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="tasks" />
+      <KidChatbot />
     </div>
-  )
+  );
 } 

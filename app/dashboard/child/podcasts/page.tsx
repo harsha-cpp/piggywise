@@ -1,7 +1,7 @@
 "use client";
 
 import { PodcastsPage } from "@/components/podcasts-page";
-import { BottomNavigation } from "@/components/bottom-navigation";
+import { TopNavigation } from "@/components/top-navigation";
 import { KidChatbot } from "@/components/kid-chatbot";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
@@ -30,10 +30,10 @@ export default function Podcasts() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container py-6 max-w-5xl mx-auto">
+      <TopNavigation activeTab="podcasts" />
+      <div className="container py-6 pt-20 max-w-5xl mx-auto">
         <PodcastsPage />
       </div>
-      <BottomNavigation activeTab="podcasts" />
       <KidChatbot />
     </div>
   );

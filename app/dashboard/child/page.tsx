@@ -17,14 +17,14 @@ import ChildLoader from "@/components/loaders/ChildLoader";
 import { CharacterPanel } from "@/components/character-panel"
 import { ModuleCard } from "@/components/module-card"
 import { FirstTimeExperience } from "@/components/first-time-experience"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { PodcastsPage } from "@/components/podcasts-page"
 import { SettingsPage } from "@/components/settings-page"
 import { KidChatbot } from "@/components/kid-chatbot"
 
-export default function ChildDashboard() {
+export default function ChildDashboardPage() {
   const { data: session, status } = useSession();
-  const [expandedTab, setExpandedTab] = useState<string | null>("stats");
+  const [expandedTab, setExpandedTab] = useState<string | null>("tasks");
   const [activePage, setActivePage] = useState("home");
   const [hasCharacter, setHasCharacter] = useState(true); // Set to true by default to skip first-time experience for now
   const [isLoading, setIsLoading] = useState(true);
@@ -71,6 +71,38 @@ export default function ChildDashboard() {
   const completedTasks = childTasks.filter((task: Task) => task.status === "COMPLETED").length;
   const totalTasks = childTasks.length;
   const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  // Calculate lessons completed and modules completed
+  const [lessonsCompleted, setLessonsCompleted] = useState(0);
+  const [modulesCompleted, setModulesCompleted] = useState(0);
+
+  // Update lessons completed count based on module data
+  useEffect(() => {
+    if (modulesData?.modules) {
+      let totalLessonsCompleted = 0;
+      let totalModulesCompleted = 0;
+      
+      modulesData.modules.forEach((module: any) => {
+        // If module has progress data
+        if (module.progress) {
+          totalLessonsCompleted += module.progress.completedLessons || 0;
+          
+          // If all lessons are completed, count module as completed
+          if (module.progress.completedLessons === module.contents?.length) {
+            totalModulesCompleted++;
+          }
+        } else if (module.status === "COMPLETED") {
+          // If no detailed progress but module is marked complete
+          totalModulesCompleted++;
+          // Estimate lesson count (if module has contents)
+          totalLessonsCompleted += module.contents?.length || 0;
+        }
+      });
+      
+      setLessonsCompleted(totalLessonsCompleted);
+      setModulesCompleted(totalModulesCompleted);
+    }
+  }, [modulesData]);
 
   // Sort tasks: pending first, then by due date
   const sortedTasks = [...childTasks].sort((a: Task, b: Task) => {
@@ -146,21 +178,18 @@ export default function ChildDashboard() {
     toggleTaskMutation.mutate({ taskId: task.id, status: newStatus });
   };
 
-  // Calculate level and progress based on XP
+  // Calculate XP based on lessons completed and modules completed
   useEffect(() => {
-    // Simple level calculation: 100 XP per level, with level 1 starting at 0 XP
-    const calculatedLevel = Math.floor(userXP / 100) + 1;
+    // Calculate XP based on lessons and modules
+    const lessonXP = lessonsCompleted * 25; // 25 XP per lesson
+    const moduleXP = modulesCompleted * 20; // 20 XP bonus per module
+    const totalXP = lessonXP + moduleXP;
+    
+    // Set XP and calculate level (100 XP per level)
+    setUserXP(totalXP);
+    const calculatedLevel = Math.floor(totalXP / 100) + 1;
     setUserLevel(calculatedLevel);
-  }, [userXP]);
-  
-  // Calculate level progress percentage
-  const calculateLevelProgress = () => {
-    const xpForCurrentLevel = (userLevel - 1) * 100;
-    const xpForNextLevel = userLevel * 100;
-    const xpInCurrentLevel = userXP - xpForCurrentLevel;
-    const xpNeededForNextLevel = xpForNextLevel - xpForCurrentLevel;
-    return Math.round((xpInCurrentLevel / xpNeededForNextLevel) * 100);
-  };
+  }, [lessonsCompleted, modulesCompleted]);
 
   // Redirect if not logged in or not a child
   useEffect(() => {
@@ -203,50 +232,6 @@ export default function ChildDashboard() {
 
   // Tab accordion components
   const tabAccordions = [
-    {
-      id: "stats",
-      title: "Stats",
-      color: "bg-red-200",
-      activeColor: "bg-red-300",
-      content: (
-        <div className="bg-white rounded-xl p-4 shadow-md mt-2">
-          <h3 className="font-bold text-lg mb-3">Your Stats</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-amber-50 p-3 rounded-lg">
-              <p className="text-sm font-medium">Experience (XP)</p>
-              <p className="text-xl font-bold">{userXP}</p>
-            </div>
-            <div className="bg-green-50 p-3 rounded-lg">
-              <p className="text-sm font-medium">Current Level</p>
-              <p className="text-xl font-bold">{userLevel}</p>
-            </div>
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-sm font-medium">Lessons Completed</p>
-              <p className="text-xl font-bold">7</p>
-            </div>
-            <div className="bg-purple-50 p-3 rounded-lg">
-              <p className="text-sm font-medium">Current Streak</p>
-              <p className="text-xl font-bold">5 days</p>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex justify-between mb-1 text-xs text-gray-600">
-              <span>Level {userLevel} Progress</span>
-              <span>{calculateLevelProgress()}%</span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div 
-                className="h-full bg-blue-500 rounded-full" 
-                style={{ width: `${calculateLevelProgress()}%` }}
-              />
-            </div>
-            <p className="mt-2 text-center text-sm text-gray-500">
-              {100 - (userXP % 100)} XP until level {userLevel + 1}
-            </p>
-          </div>
-        </div>
-      )
-    },
     {
       id: "tasks",
       title: "Tasks",
@@ -327,66 +312,22 @@ export default function ChildDashboard() {
           </div>
         </div>
       )
-    },
-    {
-      id: "achievements",
-      title: "Achievements",
-      color: "bg-red-200/80",
-      activeColor: "bg-red-300/80",
-      content: (
-        <div className="bg-white rounded-xl p-4 shadow-md mt-2">
-          <h3 className="font-bold text-lg mb-3">Your Achievements</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-purple-50 p-3 rounded-lg flex flex-col items-center">
-              <div className="text-2xl mb-1">🏆</div>
-              <p className="text-sm font-medium text-center">First Savings</p>
-            </div>
-            <div className="bg-blue-50 p-3 rounded-lg flex flex-col items-center">
-              <div className="text-2xl mb-1">🌟</div>
-              <p className="text-sm font-medium text-center">Budget Master</p>
-            </div>
-            <div className="bg-amber-50 p-3 rounded-lg flex flex-col items-center opacity-50">
-              <div className="text-2xl mb-1">🔒</div>
-              <p className="text-sm font-medium text-center">Investor (Locked)</p>
-            </div>
-            <div className="bg-green-50 p-3 rounded-lg flex flex-col items-center opacity-50">
-              <div className="text-2xl mb-1">🔒</div>
-              <p className="text-sm font-medium text-center">Money Wizard (Locked)</p>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: "todo",
-      title: "To-Do",
-      color: "bg-red-200/70",
-      activeColor: "bg-red-300/70",
-      content: (
-        <div className="bg-white rounded-xl p-4 shadow-md mt-2">
-          <h3 className="font-bold text-lg mb-3">Your To-Do List</h3>
-          <ul className="space-y-2">
-            <li className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-              <input type="checkbox" className="h-4 w-4 rounded" />
-              <span>Complete Money Mountain level 3</span>
-            </li>
-            <li className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-              <input type="checkbox" className="h-4 w-4 rounded" />
-              <span>Watch video about saving</span>
-            </li>
-            <li className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-              <input type="checkbox" className="h-4 w-4 rounded" />
-              <span>Set a savings goal</span>
-            </li>
-          </ul>
-        </div>
-      )
     }
   ];
   
+  // Always keep the Tasks accordion expanded
+  useEffect(() => {
+    setExpandedTab("tasks");
+  }, []);
+
   // Handle accordion toggle
   const toggleAccordion = (id: string) => {
-    setExpandedTab(expandedTab === id ? null : id);
+    if (id === "tasks") {
+      // Keep tasks always expanded
+      setExpandedTab("tasks");
+    } else {
+      setExpandedTab(expandedTab === id ? null : id);
+    }
   };
 
   // Render different pages based on active page
@@ -417,9 +358,9 @@ export default function ChildDashboard() {
               className="pb-12"
             >
               {/* Main Content with Sidebar Layout */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Main Content Area (75%) */}
-                <div className="md:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Main Content Area (70%) */}
+                <div className="md:col-span-2">
                   {/* Header Section */}
                   <div className="mb-8">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
@@ -440,11 +381,6 @@ export default function ChildDashboard() {
                               <div className="h-4 w-4 bg-gray-500 rounded-full mr-2"></div>
                               <span className="font-medium">{tab.title}</span>
                             </div>
-                            {expandedTab === tab.id ? (
-                              <ChevronUp className="h-5 w-5" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5" />
-                            )}
                           </button>
                           {expandedTab === tab.id && tab.content}
                         </div>
@@ -527,11 +463,11 @@ export default function ChildDashboard() {
                   </section>
                 </div>
 
-                {/* Character Panel Sidebar (25%) */}
+                {/* Character Panel Sidebar (30%) */}
                 <div className="md:col-span-1 md:h-screen">
-                  <div className="md:sticky md:top-4">
+                  <div className="md:sticky md:top-[4.5rem]">
                     <h2 className="text-xl font-bold text-gray-800 mb-4 md:block hidden">Your Character</h2>
-                    <CharacterPanel />
+                    <CharacterPanel lessonsCompleted={lessonsCompleted} />
                   </div>
                 </div>
               </div>
@@ -613,14 +549,13 @@ export default function ChildDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
+      <TopNavigation activeTab={activePage} onTabChange={setActivePage} />
+      <div className="container pt-20 pb-6 max-w-6xl mx-auto px-2 sm:px-3">
         {renderPage()}
       </div>
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activePage} onTabChange={setActivePage} />
       
       {/* Kid-friendly Gemini Chatbot */}
       <KidChatbot />
     </div>
-  )
+  );
 } 
