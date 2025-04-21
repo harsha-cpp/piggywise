@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
 
 interface TopNavigationProps {
   activeTab: string
@@ -42,7 +44,16 @@ export function TopNavigation({ activeTab, onTabChange }: TopNavigationProps) {
           {/* Logo and desktop navigation */}
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold">Piggywise</span>
+              <Link href="/dashboard/child" className="flex items-center space-x-1">
+                <Image 
+                  src="/peppapig.png" 
+                  alt="Peppa Pig" 
+                  width={36} 
+                  height={36} 
+                  className="object-contain w-9 h-9"
+                />
+                <span className="text-xl font-bold">Piggywise</span>
+              </Link>
             </div>
             
             {/* Desktop navigation */}

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
 import { Home, CheckSquare, BarChart2, Headphones, Settings, LogOut, Menu, X } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ChildDashboardProps {
   initialTab?: string;
@@ -126,7 +127,16 @@ export default function ChildDashboard({ initialTab = 'home' }: ChildDashboardPr
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold text-gray-900">Piggywise</span>
+                <Link href="/dashboard/child" className="flex items-center space-x-1">
+                  <Image 
+                    src="/peppapig.png" 
+                    alt="Peppa Pig" 
+                    width={36} 
+                    height={36} 
+                    className="object-contain w-9 h-9"
+                  />
+                  <span className="text-xl font-bold text-gray-900">Piggywise</span>
+                </Link>
               </div>
               <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {childNavItems.map((item) => (

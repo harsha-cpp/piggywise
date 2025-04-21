@@ -25,6 +25,24 @@ const podcasts: Podcast[] = [
     thumbnailUrl: "/placeholder.svg",
     audioUrl: "https://res.cloudinary.com/dwxsrko1g/video/upload/v1744868696/Financial_Literacy_Needs_and_Wants_1_aiht2v.mp3",
     hostName: "Money Mentor"
+  },
+  {
+    id: "2",
+    title: "Budget Basics",
+    description: "Learn how to create and manage a budget to track your income and expenses.",
+    duration: "5:30",
+    thumbnailUrl: "/placeholder.svg",
+    audioUrl: "https://res.cloudinary.com/dwxsrko1g/video/upload/v1744868572/Financial_Literacy_Budget_yfa8ml.mp3",
+    hostName: "Money Mentor"
+  },
+  {
+    id: "3",
+    title: "Financial Literacy for Kids",
+    description: "An introduction to important money concepts designed especially for children.",
+    duration: "5:25",
+    thumbnailUrl: "/placeholder.svg",
+    audioUrl: "https://res.cloudinary.com/dwxsrko1g/video/upload/v1744868800/Financial_Literacy_for_Kids_1_v5dvfh.mp3",
+    hostName: "Money Mentor"
   }
 ]
 
