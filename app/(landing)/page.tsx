@@ -84,24 +84,26 @@ export default function Home() {
         </div>
       </div>
       
-      <section className="py-8 sm:py-12 mx-4 sm:mx-8 md:mx-12 lg:mx-16">
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center">
-          <div className="md:pr-6">
-            <h1 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">Wealth is built on habits.</h1>
-            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base md:text-lg max-w-2xl">
-              Does your child have the right ones?
-            </p>
-            <Link href="/login">
-              <button className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-800 text-white rounded hover:bg-green-900 text-sm sm:text-base">Check out</button>
-            </Link>
-          </div>
-          <div className="flex justify-center md:justify-end mt-4 sm:mt-6 md:mt-0">
-            <div className="relative h-44 sm:h-52 md:h-60 lg:h-64 w-full max-w-xs sm:max-w-sm">
+      <section className="min-h-[90vh] flex items-center py-4 sm:py-6 mx-4 sm:mx-8 md:mx-12 lg:mx-16 mt-0">
+        <div className="bg-[#ffd799] rounded-xl overflow-hidden w-full shadow-xl">
+          <div className="grid md:grid-cols-2 gap-0 min-h-[70vh]">
+            <div className="p-6 sm:p-8 md:p-12 lg:p-16 flex flex-col justify-center">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">Wealth is built on habits.</h1>
+              <p className="text-gray-800 mb-8 sm:mb-10 text-lg sm:text-xl">
+                Does your child have the right ones?
+              </p>
+              <div>
+                <Link href="/login">
+                  <button className="px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-900 text-base sm:text-lg font-medium shadow-md hover:shadow-lg transition-all">Check out</button>
+                </Link>
+              </div>
+            </div>
+            <div className="relative min-h-[50vh] md:min-h-full">
               <Image
-                src="/finance1.png?height=320&width=400"
+                src="/Summer Image.png"
                 alt="Credit score progress"
                 fill
-                className="object-contain"
+                className="object-cover"
                 style={{ objectPosition: "center" }}
                 priority
               />
@@ -110,43 +112,44 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-8 sm:py-12 bg-[#fdf2ed] rounded-xl mx-4 sm:mx-8 md:mx-12 lg:mx-16">
+      <section className="py-8 sm:py-12 bg-[#d64545] rounded-xl mx-4 sm:mx-8 md:mx-12 lg:mx-16">
         <div className="px-4 sm:px-6 md:px-8 lg:px-12">
           <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center">
             <div className="md:pr-6">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Take control of your kid's financial future</h2>
-              <p className="text-gray-600 mb-4 sm:mb-5 md:mb-6 text-sm sm:text-base md:text-lg">
-                Help your children understand money management from an early age, <span className="hidden sm:inline"><br /></span> Guide them towards financial literacy and independence for a secure tomorrow.
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-white">Take control of your kid's financial future</h2>
+              <p className="text-white mb-4 sm:mb-5 md:mb-6 text-sm sm:text-base md:text-lg">
+                Help your children understand money management from an early age.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-              <div className="bg-[#BBF7D0] p-3 sm:p-4 md:p-5 rounded-lg shadow-md group relative">
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-[350px] h-[220px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 mb-2 rounded-lg overflow-hidden shadow-xl">
+              <div className="bg-[#ffd799] p-3 rounded-lg shadow-md flex flex-col">
+                <div className="text-center mb-2">
+                  <span className="text-lg font-bold">Parent Dashboard</span>
+                </div>
+                <div className="relative w-full h-[180px] rounded-md overflow-hidden bg-white mb-2">
                   <Image
                     src="/Parentdashboard.jpeg"
                     alt="Parent Dashboard Preview"
                     fill
-                    className="object-contain bg-white p-1"
+                    className="object-contain"
                   />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2">Parent <br className="hidden xs:inline" /> Dashboard</span>
-                  <span className="text-sm sm:text-base font-normal">Learn Finance, spending and saving techniques</span>
-                </div>
+                <span className="text-sm font-normal">Learn Finance, spending and saving techniques</span>
               </div>
-              <div className="bg-[#BBF7D0] p-3 sm:p-4 md:p-5 rounded-lg shadow-md group relative">
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-[350px] h-[220px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 mb-2 rounded-lg overflow-hidden shadow-xl">
+              
+              <div className="bg-[#ffd799] p-3 rounded-lg shadow-md flex flex-col">
+                <div className="text-center mb-2">
+                  <span className="text-lg font-bold">Child Dashboard</span>
+                </div>
+                <div className="relative w-full h-[180px] rounded-md overflow-hidden bg-white mb-2">
                   <Image
                     src="/childdashboard.jpeg"
-                    alt="Student Dashboard Preview"
+                    alt="Child Dashboard Preview"
                     fill
-                    className="object-contain bg-white p-1"
+                    className="object-contain"
                   />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2">Student Dashboard</span>
-                  <span className="text-sm sm:text-base font-normal">Learn Finance, spending and saving techniques</span>
-                </div>
+                <span className="text-sm font-normal">Learn Finance, spending and saving techniques</span>
               </div>
             </div>
           </div>
