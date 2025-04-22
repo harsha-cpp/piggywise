@@ -18,11 +18,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface ProgressItem {
+  id: string
   moduleId: string
-  moduleName: string
   status: string
-  lastUpdated: string
-  progress: number
+  completedLessons: number
+  totalLessons: number
+  lastUpdated: string | null
+  completionPercentage: number
+  isAssigned?: boolean
+  module: {
+    id: string
+    title: string
+    description: string
+    thumbnailUrl?: string
+    category: string
+    difficulty: string
+  }
 }
 
 interface ChildProgressListProps {
@@ -31,11 +42,12 @@ interface ChildProgressListProps {
 
 export default function ChildProgressList({ progressData }: ChildProgressListProps) {
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [assignedFilter, setAssignedFilter] = useState<boolean | null>(null)
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
 
   // Validate and normalize the data
   const validProgressData = progressData?.filter(item => 
-    item && typeof item === 'object' && item.moduleId && item.moduleName
+    item && typeof item === 'object' && item.moduleId && item.module?.title
   ) || [];
 
   if (!progressData || !Array.isArray(progressData) || validProgressData.length === 0) {
@@ -44,14 +56,14 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
           <AlertCircle className="w-8 h-8 text-purple-500" />
         </div>
-        <h3 className="mb-1 text-lg font-medium text-gray-900">No Modules Assigned</h3>
-        <p className="text-sm text-gray-600">This child doesn't have any learning modules assigned yet</p>
+        <h3 className="mb-1 text-lg font-medium text-gray-900">No Modules Available</h3>
+        <p className="text-sm text-gray-600">No modules have been created for this child yet</p>
       </div>
     )
   }
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "N/A";
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Not started yet";
     
     try {
       const date = new Date(dateString)
@@ -66,10 +78,9 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
   }
 
   const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
+    switch (formatStatus(status).toLowerCase()) {
       case "completed":
         return <CheckCircle className="w-5 h-5 text-green-500" />
-      case "in_progress":
       case "in progress":
         return <Clock className="w-5 h-5 text-amber-500" />
       default:
@@ -78,12 +89,11 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
   }
 
   const getStatusBadge = (status: string) => {
-    const statusLower = status?.toLowerCase() || "";
+    const formattedStatus = formatStatus(status).toLowerCase();
     
-    switch (statusLower) {
+    switch (formattedStatus) {
       case "completed":
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>
-      case "in_progress":
       case "in progress":
         return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">In Progress</Badge>
       default:
@@ -95,10 +105,10 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
   const formatStatus = (status: string): string => {
     if (!status) return "Not Started";
     
-    switch(status.toLowerCase()) {
-      case "completed": return "Completed";
-      case "in_progress": return "In Progress";
-      case "not_started": return "Not Started";
+    switch(status.toUpperCase()) {
+      case "COMPLETED": return "Completed";
+      case "IN_PROGRESS": return "In Progress";
+      case "NOT_STARTED": return "Not Started";
       default: return status;
     }
   };
@@ -109,14 +119,22 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
   if (statusFilter) {
     filteredData = filteredData.filter((item) => formatStatus(item.status) === statusFilter)
   }
+  
+  if (assignedFilter !== null) {
+    filteredData = filteredData.filter((item) => item.isAssigned === assignedFilter)
+  }
 
   // Sort by progress
   filteredData.sort((a, b) => {
-    return sortOrder === "desc" ? b.progress - a.progress : a.progress - b.progress
+    return sortOrder === "desc" 
+      ? b.completionPercentage - a.completionPercentage 
+      : a.completionPercentage - b.completionPercentage
   })
 
   // Calculate overall progress
-  const overallProgress = Math.round(validProgressData.reduce((sum, item) => sum + item.progress, 0) / validProgressData.length)
+  const overallProgress = validProgressData.length > 0 
+    ? Math.round(validProgressData.reduce((sum, item) => sum + item.completionPercentage, 0) / validProgressData.length)
+    : 0;
 
   return (
     <div className="space-y-4">
@@ -132,24 +150,44 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
 
       {/* Filters */}
       <div className="flex justify-between items-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("Completed")}>Completed</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("In Progress")}>In Progress</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatusFilter("Not Started")}>Not Started</DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Status
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => setStatusFilter(null)}>All Statuses</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("Completed")}>Completed</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("In Progress")}>In Progress</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("Not Started")}>Not Started</DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Assignment
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Filter by Assignment</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => setAssignedFilter(null)}>All Modules</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAssignedFilter(true)}>Assigned Only</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAssignedFilter(false)}>Unassigned Only</DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
           <SelectTrigger className="w-[180px]">
@@ -201,16 +239,25 @@ export default function ChildProgressList({ progressData }: ChildProgressListPro
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon(item.status)}
-              <h3 className="font-medium text-gray-900">{item.moduleName}</h3>
+              <h3 className="font-medium text-gray-900">{item.module.title}</h3>
             </div>
-            {getStatusBadge(item.status)}
+            <div className="flex gap-2">
+              {getStatusBadge(item.status)}
+              {item.isAssigned !== undefined && (
+                item.isAssigned ? 
+                <Badge className="bg-blue-100 text-blue-800">Assigned</Badge> : 
+                <Badge variant="outline">Not Assigned</Badge>
+              )}
+            </div>
           </div>
 
           <div className="mb-2">
-            <Progress value={item.progress} className="h-2" />
+            <Progress value={item.completionPercentage} className="h-2" />
             <div className="flex justify-between mt-1">
-              <span className="text-xs text-gray-600">Progress</span>
-              <span className="text-xs font-medium text-gray-900">{item.progress}%</span>
+              <span className="text-xs text-gray-600">
+                {item.completedLessons} of {item.totalLessons} lessons completed
+              </span>
+              <span className="text-xs font-medium text-gray-900">{item.completionPercentage}%</span>
             </div>
           </div>
 

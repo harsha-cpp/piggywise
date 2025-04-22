@@ -87,9 +87,9 @@ export default function Home() {
       <section className="py-8 sm:py-12 mx-4 sm:mx-8 md:mx-12 lg:mx-16">
         <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center">
           <div className="md:pr-6">
-            <h1 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">Know your financial personality</h1>
-            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base md:text-lg">
-            Know Your Financial Personality: Discovering How Your Money Habits Shape Your Creditworthiness and Financial Future
+            <h1 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">Wealth is built on habits.</h1>
+            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base md:text-lg max-w-2xl">
+              Does your child have the right ones?
             </p>
             <Link href="/login">
               <button className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-800 text-white rounded hover:bg-green-900 text-sm sm:text-base">Check out</button>
@@ -120,13 +120,29 @@ export default function Home() {
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-              <div className="bg-[#BBF7D0] p-3 sm:p-4 md:p-5 rounded-lg shadow-md">
+              <div className="bg-[#BBF7D0] p-3 sm:p-4 md:p-5 rounded-lg shadow-md group relative">
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-[350px] h-[220px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 mb-2 rounded-lg overflow-hidden shadow-xl">
+                  <Image
+                    src="/Parentdashboard.jpeg"
+                    alt="Parent Dashboard Preview"
+                    fill
+                    className="object-contain bg-white p-1"
+                  />
+                </div>
                 <div className="flex flex-col">
                   <span className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2">Parent <br className="hidden xs:inline" /> Dashboard</span>
                   <span className="text-sm sm:text-base font-normal">Learn Finance, spending and saving techniques</span>
                 </div>
               </div>
-              <div className="bg-[#BBF7D0] p-3 sm:p-4 md:p-5 rounded-lg shadow-md">
+              <div className="bg-[#BBF7D0] p-3 sm:p-4 md:p-5 rounded-lg shadow-md group relative">
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-[350px] h-[220px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 mb-2 rounded-lg overflow-hidden shadow-xl">
+                  <Image
+                    src="/childdashboard.jpeg"
+                    alt="Student Dashboard Preview"
+                    fill
+                    className="object-contain bg-white p-1"
+                  />
+                </div>
                 <div className="flex flex-col">
                   <span className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold mb-2">Student Dashboard</span>
                   <span className="text-sm sm:text-base font-normal">Learn Finance, spending and saving techniques</span>
@@ -140,10 +156,10 @@ export default function Home() {
       <section className="py-8 sm:py-12 mx-4 sm:mx-8 md:mx-12 lg:mx-16">
         <div className="text-center mb-6 sm:mb-8">
           <span className="inline-block bg-black text-green-100 px-2 py-0.5 sm:px-3 sm:py-1 rounded text-xs sm:text-sm font-medium mb-2">NEW</span>
-          <h2 className="text-2xl sm:text-3xl font-bold">Know your file</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">How Piggywise Works</h2>
           <p className="text-gray-600 mt-2 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
-            The first step towards progress is knowing. It's why with Checkmyfile you get an independent, holistic view
-            of your credit history. Because the fuller the picture, the better your progress.
+            Our step-by-step approach makes financial education engaging and effective for learners of all ages.
+            Start your journey to financial confidence today.
           </p>
           <Link href="/read-our-story">
             <button className="mt-3 sm:mt-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-800 text-white rounded hover:bg-green-900 text-sm sm:text-base">
@@ -152,247 +168,90 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-          <div className="bg-orange-200 p-3 sm:p-4 md:p-5 rounded-lg">
-            <h3 className="font-medium mb-2 text-base sm:text-lg">See where you've been</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-              Get a clear picture of your credit history from Experian, Equifax and TransUnion. Lenders view your credit
-              history differently.
+          <div className="bg-orange-200 p-3 sm:p-4 md:p-5 rounded-lg flex flex-col">
+            <h3 className="font-medium mb-2 text-base sm:text-lg">Learn from Modules</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 flex-grow">
+              Engage with bite-sized, easy-to-understand modules that break down complex financial concepts into relatable lessons. Each module is designed to build your knowledge step-by-step, at your own pace.
             </p>
-            <div className="flex justify-center">
-              <Image
-                src="/.jpg?height=150&width=200"
-                alt="Credit history chart"
-                width={200}
-                height={150}
-                className="w-full max-w-[130px] sm:max-w-[170px] md:max-w-[200px]"
-              />
-            </div>
-          </div>
-          <div className="bg-blue-200 p-3 sm:p-4 md:p-5 rounded-lg">
-            <h3 className="font-medium mb-2 text-base sm:text-lg">Where you can improve</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-              Use our tools to identify any errors and take steps to improve your credit score.
-            </p>
-            <div className="flex justify-center">
-              <Image
-                src="/placeholder.svg?height=150&width=200"
-                alt="Improvement chart"
-                width={200}
-                height={150}
-                className="w-full max-w-[130px] sm:max-w-[170px] md:max-w-[200px]"
-              />
-            </div>
-          </div>
-          <div className="bg-yellow-100 p-3 sm:p-4 md:p-5 rounded-lg sm:col-span-2 md:col-span-1">
-            <h3 className="font-medium mb-2 text-base sm:text-lg">Where you're spending</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-              Track your spending patterns and see how lenders view your financial behavior.
-            </p>
-            <div className="bg-white rounded-lg p-2 flex justify-center">
-              <Image
-                src="/placeholder.svg?height=150&width=200"
-                alt="Spending chart"
-                width={200}
-                height={150}
-                className="w-full max-w-[130px] sm:max-w-[170px] md:max-w-[200px]"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-8 sm:py-12 mx-4 sm:mx-8 md:mx-12 lg:mx-16">
-        <div className="text-center mb-6 sm:mb-8">
-          <span className="inline-block bg-black text-green-500 px-2 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm font-medium mb-2">
-            STEP 2
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold">Grow your score</h2>
-          <p className="text-gray-600 mt-2 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
-            With a clearer picture of your past, we can give you clear, actionable steps to focus on your present — and
-            progress towards the future. And with daily updates, it's easier than you might think.
-          </p>
-          <Link href="/grow-your-score">
-            <button className="mt-3 sm:mt-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-800 text-white rounded hover:bg-green-900 text-sm sm:text-base">
-              Make it happen
-            </button>
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-          <div className="bg-pink-200 p-3 sm:p-4 md:p-5 rounded-lg">
-            <h3 className="font-medium mb-2 text-base sm:text-lg">The full picture</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-              See how your actions day to day affect your score, making it clearer the steps we'll guide you on.
-            </p>
-            <div className="bg-white rounded-lg p-2 text-center">
-              <span className="text-2xl sm:text-3xl font-bold text-orange-500">762</span>
-              <div className="text-xs mt-1">A-B | Excellent credit score</div>
-            </div>
-          </div>
-          <div className="bg-blue-200 p-3 sm:p-4 md:p-5 rounded-lg">
-            <h3 className="font-medium mb-2 text-base sm:text-lg">Up, up and honey</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-              We'll help you understand how to get you where you want to go, and celebrate the little wins along the
-              way.
-            </p>
-            <div className="space-y-2">
-              <div className="bg-white rounded-lg p-1 text-start">
-                <div className="text-green-700 font-medium text-xs sm:text-sm">Confirmed on Electoral Roll</div>
-              </div>
-              <div className="bg-white rounded-lg p-1 text-start">
-                <div className="text-green-700 font-medium text-xs sm:text-sm">Confirmed on Electoral Roll</div>
+            <div className="flex justify-center items-center mt-auto mb-1">
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg w-[200px] h-[120px] flex items-center justify-center transform">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
               </div>
             </div>
           </div>
-          <div className="bg-green-200 p-3 sm:p-4 md:p-5 rounded-lg sm:col-span-2 md:col-span-1">
-            <h3 className="font-medium mb-2 text-base sm:text-lg">Habits for a lifetime</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-              Our recommendations help you form the habits you need to keep your score high over time.
+          <div className="bg-blue-200 p-3 sm:p-4 md:p-5 rounded-lg flex flex-col">
+            <h3 className="font-medium mb-2 text-base sm:text-lg">Take Quizzes</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 flex-grow">
+              Reinforce your learning with interactive quizzes that help test your understanding and track your progress. Quizzes make learning fun while giving you instant feedback.
             </p>
-            <div className="bg-white rounded-lg p-2">
-              <ul className="text-xs sm:text-sm space-y-2">
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-700 rounded-full mr-2"></span>
-                  <span>Pay bills on time</span>
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-700 rounded-full mr-2"></span>
-                  <span>Keep credit utilization low</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-8 sm:py-12 mx-4 sm:mx-8 md:mx-12 lg:mx-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-6">Meet the Advancers</h2>
-        <p className="text-center text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base md:text-lg">Thousands have already taken control of their credit health.</p>
-
-        <div className="relative max-w-xl mx-auto">
-          <div className="bg-pink-200 p-3 sm:p-4 md:p-6 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2">Rupert</h3>
-                <p className="text-xs sm:text-sm">
-                  <span className="font-bold">clearscorelife</span> was an absolute breeze. I was very apprehensive,
-                  very cautious about giving my details out. It was really helpful, it gave me a good idea of where I
-                  was financially and if there was anything suspicious lurking in my credit history. I love Rupert.
-                </p>
-              </div>
-              <div className="relative h-28 sm:h-36 md:h-40">
-                <Image
-                  src="/placeholder.svg?height=160&width=200"
-                  alt="Rupert testimonial"
-                  fill
-                  className="object-cover rounded"
-                />
+            <div className="flex justify-center items-center mt-auto mb-1">
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg w-[200px] h-[120px] flex items-center justify-center transform">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="45" stroke="white" strokeWidth="6"/>
+                  <path d="M50 75V75.5" stroke="white" strokeWidth="10" strokeLinecap="round"/>
+                  <path d="M50 25C55 25 63 30 63 38C63 43 60 46 57 48C54 50 50 52 50 58" stroke="white" strokeWidth="10" strokeLinecap="round"/>
+                </svg>
               </div>
             </div>
           </div>
-
-          <button className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-3 sm:-translate-x-6 md:-translate-x-10 bg-white rounded-full p-1 sm:p-2 shadow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-
-          <button className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-3 sm:translate-x-6 md:translate-x-10 bg-white rounded-full p-1 sm:p-2 shadow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        </div>
-      </section>
-
-      <section className="py-8 sm:py-12 mx-4 sm:mx-8 md:mx-12 lg:mx-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-          <div className="bg-green-200 p-3 sm:p-4 md:p-6 lg:p-8 rounded-lg">
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">See us as your score support</h2>
-            <p className="text-gray-600 mb-4 sm:mb-5 md:mb-6 text-sm sm:text-base md:text-lg">
-              We don't just stick to the shadows. With your subscription, if you ever need a hand, we're here to help.
-              Just make sure you're not withdrawing that easy more achievable.
+          <div className="bg-yellow-100 p-3 sm:p-4 md:p-5 rounded-lg sm:col-span-2 md:col-span-1 flex flex-col">
+            <h3 className="font-medium mb-2 text-base sm:text-lg">Do Tasks</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 flex-grow">
+              Apply what you've learned through real-life inspired tasks that build practical money habits. These hands-on activities turn theory into everyday action, helping you grow financially confident.
             </p>
-          </div>
-          <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 flex justify-center items-center">
-            <Image
-              src="/placeholder.svg?height=256&width=400"
-              alt="Support illustration"
-              width={300}
-              height={192}
-              className="object-contain max-w-full h-auto"
-            />
+            <div className="flex justify-center items-center mt-auto mb-1">
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg w-[200px] h-[120px] flex items-center justify-center transform">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="py-8 sm:py-12 bg-purple-50 overflow-hidden">
         <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-6">Every day score impactors</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-6">What makes piggywise impactful?</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div className="border border-gray-200 bg-white rounded-lg p-2 sm:p-3 md:p-4 text-center">
-              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Court Information</h3>
-              <div className="mx-auto relative h-16 sm:h-20 md:h-24 w-16 sm:w-20 md:w-24">
-                <Image
-                  src="/placeholder.svg?height=128&width=128"
-                  alt="Court information"
-                  fill
-                  className="object-contain"
-                />
+              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Modules</h3>
+              <div className="mx-auto flex justify-center items-center h-16 sm:h-20 md:h-24">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
               </div>
             </div>
             <div className="border border-gray-200 bg-white rounded-lg p-2 sm:p-3 md:p-4 text-center">
-              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Searches</h3>
-              <div className="mx-auto relative h-16 sm:h-20 md:h-24 w-16 sm:w-20 md:w-24">
-                <Image 
-                  src="/placeholder.svg?height=128&width=128" 
-                  alt="Searches" 
-                  fill 
-                  className="object-contain" 
-                />
+              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Tasks</h3>
+              <div className="mx-auto flex justify-center items-center h-16 sm:h-20 md:h-24">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"></path>
+                  <path d="M8 12h8"></path>
+                  <path d="M12 8v8"></path>
+                </svg>
               </div>
             </div>
             <div className="border border-gray-200 bg-white rounded-lg p-2 sm:p-3 md:p-4 text-center">
-              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Account Status</h3>
-              <div className="mx-auto relative h-16 sm:h-20 md:h-24 w-16 sm:w-20 md:w-24">
-                <Image
-                  src="/placeholder.svg?height=128&width=128"
-                  alt="Account status"
-                  fill
-                  className="object-contain"
-                />
+              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Quizzes</h3>
+              <div className="mx-auto flex justify-center items-center h-16 sm:h-20 md:h-24">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
               </div>
             </div>
             <div className="border border-gray-200 bg-white rounded-lg p-2 sm:p-3 md:p-4 text-center">
-              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Credit Usage</h3>
-              <div className="mx-auto relative h-16 sm:h-20 md:h-24 w-16 sm:w-20 md:w-24">
-                <Image 
-                  src="/placeholder.svg?height=128&width=128" 
-                  alt="Credit usage" 
-                  fill 
-                  className="object-contain" 
-                />
+              <h3 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2">Progress</h3>
+              <div className="mx-auto flex justify-center items-center h-16 sm:h-20 md:h-24">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3v18h18"></path>
+                  <path d="m19 9-5 5-4-4-3 3"></path>
+                </svg>
               </div>
             </div>
           </div>
@@ -405,10 +264,9 @@ export default function Home() {
             <div className="max-w-3xl mx-auto">
               <p className="text-xs sm:text-sm mb-1 sm:mb-2">★★★★★</p>
               <p className="italic mb-3 sm:mb-4 text-sm sm:text-base md:text-lg">
-                "Using Piggywise has been life changing for me. I was able to improve my credit score by 85 points in just
-                3 months by following their recommendations."
+                "Piggywise has transformed my child's understanding of money. My 10-year-old has started saving 30% of her pocket money every week and even created her own budget tracker! The interactive lessons really made financial concepts fun for her."
               </p>
-              <p className="text-xs sm:text-sm">Sarah from London • 3 months ago</p>
+              <p className="text-xs sm:text-sm">Priya from Mumbai • 1 months ago</p>
             </div>
           </div>
         </div>
@@ -418,7 +276,7 @@ export default function Home() {
         <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Practice makes perfect</h2>
-            <Link href="/grow-your-score">
+            <Link href="/signup">
               <button className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-800 text-white rounded hover:bg-green-900 text-sm sm:text-base">Get started</button>
             </Link>
           </div>
@@ -427,4 +285,5 @@ export default function Home() {
     </div>
   )
 }
+
 

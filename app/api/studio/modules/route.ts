@@ -152,43 +152,36 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.email) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
-    // Check if user is a parent
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { userType: true, id: true }
-    })
-
-    if (!user || user.userType !== 'PARENT') {
-      return NextResponse.json({ error: "Only parents can access modules" }, { status: 403 })
-    }
-
-    // Get all modules created by this parent
+    
+    console.log("Fetching modules created by user:", session.user.id);
+    
     const modules = await prisma.module.findMany({
       where: {
-        creatorId: user.id
-      },
-      include: {
-        contents: true,
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
+        creatorId: session.user.id
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: "desc"
+      },
+      include: {
+        contents: {
+          orderBy: {
+            order: "asc"
+          }
+        }
       }
     })
-
+    
+    console.log(`Found ${modules.length} modules created by user ${session.user.id}`);
+    if (modules.length > 0) {
+      console.log("First module:", { id: modules[0].id, title: modules[0].title });
+    }
+    
     return NextResponse.json({ modules })
   } catch (error) {
-    console.error("[MODULE_STUDIO_LIST]", error)
+    console.error("[STUDIO_MODULES_GET]", error)
     return NextResponse.json({ 
       error: "Internal server error", 
       details: error instanceof Error ? error.message : String(error),

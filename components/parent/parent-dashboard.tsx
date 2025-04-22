@@ -224,18 +224,34 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
   console.log('Combined modules:', modules);
   const isLoadingModules = isModulesLoading || isCreatedModulesLoading;
 
+  // Define children variable before it's used
+  const children = parentProfile?.children || [];
+
   // Fetch child progress
   const { data: progressData, isLoading: isProgressLoading } = useQuery({
     queryKey: ['childProgress', selectedChildId],
     queryFn: async () => {
-      if (!selectedChildId) return null;
+      if (!selectedChildId) {
+        // If no child is selected but we have children, use the first one
+        if (children && children.length > 0) {
+          const firstChildId = children[0].id;
+          setSelectedChildId(firstChildId);
+          return fetch(`/api/parent/child-progress/${firstChildId}`).then(r => {
+            if (!r.ok) throw new Error('Failed to fetch child progress');
+            return r.json();
+          });
+        }
+        return null;
+      }
+      
+      console.log("Fetching progress for child:", selectedChildId);
       const response = await fetch(`/api/parent/child-progress/${selectedChildId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch child progress');
       }
       return response.json();
     },
-    enabled: !!selectedChildId,
+    enabled: !!selectedChildId || (children && children.length > 0),
   });
 
   // Link child mutation
@@ -389,8 +405,6 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
       </div>
     );
   }
-
-  const children = parentProfile.children || [];
 
   const renderTabContent = () => {
     if (isTabDataLoading) {
@@ -581,18 +595,23 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
             <CardContent className="px-3 sm:px-6 py-2 sm:py-4">
               {children.length > 0 ? (
                 <>
-                  {progressData?.progressData?.length > 0 ? (
+                  {isProgressLoading ? (
+                    <div className="p-8 text-center">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                      <p className="text-gray-500">Loading progress data...</p>
+                    </div>
+                  ) : progressData?.progressData?.length > 0 ? (
                     <ChildProgressList progressData={progressData?.progressData || []} />
                   ) : (
                     <div className="p-4 sm:p-8 text-center text-muted-foreground">
                       <Award className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-20" />
-                      <p className="text-sm">No modules have been assigned to this child yet</p>
+                      <p className="text-sm">No modules have been created for this child yet</p>
                       <Button 
                         variant="outline" 
                         className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-10" 
-                        onClick={() => setActiveTab("modules")}
+                        onClick={() => setActiveTab("studio")}
                       >
-                        Browse Modules
+                        Create Modules
                       </Button>
                     </div>
                   )}
@@ -701,7 +720,6 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 h-auto p-1">
                     <Avatar>
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt={isInitialDataLoading ? "User" : parentProfile?.name || "User"} />
                       <AvatarFallback>{isInitialDataLoading ? "?" : parentProfile?.name?.charAt(0) || "?"}</AvatarFallback>
                     </Avatar>
                     <div className="hidden md:block">
@@ -811,14 +829,6 @@ export function ParentDashboard({ onTabChange }: { onTabChange?: (tab: string) =
                       Track your child's learning progress and assign modules.
                     </motion.p>
                   </div>
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="hidden md:block"
-                  >
-                    <img src="/placeholder.svg?height=120&width=200" alt="Education illustration" className="h-24 sm:h-32" />
-                  </motion.div>
                 </CardContent>
               </Card>
             </motion.div>

@@ -35,7 +35,6 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Know your type", href: "/" },
-    { name: "Grow your score ", href: "/grow-your-score" },
     { name: "Read our story", href: "/read-our-story" },
   ]
   

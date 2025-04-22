@@ -1,47 +1,44 @@
+"use client"
+
 import Link from "next/link"
+import { useRef } from "react"
 
 export default function Footer() {
+  const mapContainerRef = useRef(null);
+  
+  // Simpler direct embed link - showing area similar to the image
+  const mapSrc = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=RV+University,Bengaluru+Karnataka&zoom=14&maptype=roadmap`
+
   return (
     <footer className="w-full mt-16">
       <div className="bg-gradient-to-t from-pink-400 to-yellow-200 py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Help Centre Column */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Contact us</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start md:items-stretch">
+            {/* Contact Info Column */}
+            <div className="flex flex-col md:pt-5">
+              <h3 className="text-lg font-bold mb-4 md:mb-6">Contact us</h3>
               <div className="space-y-2">
-                <p className="text-sm">E-mail priority customer service</p>
-                <p className="text-sm">Monday to Friday 09:00 - 17:00</p>
-                <p className="text-sm"></p>
+                <p className="text-sm">piggywise@gmail.com</p>
+                <p className="text-sm">Tuesdays 2 - 4 pm - Thursdays 2 - 4pm</p>
+                <p className="text-sm">RV Vidyanikethan Post, 8th Mile, Mysore Rd, Mailasandra, Bengaluru, Karnataka 560059</p>
               </div>
             </div>
 
-            {/* Credit Health Column */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Finance Wealth</h3>
-              <div className="space-y-2">
-                <Link href="/read-our-story" className="block text-sm hover:underline">
-                  Know your type
-                </Link>
-                <Link href="/grow-your-score" className="block text-sm hover:underline">
-                  Grow your skills
-                </Link>
-              </div>
-            </div>
-
-            {/* Information Column */}
-           
-
-            {/* Company Column */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Company</h3>
-              <div className="space-y-2">
-                <Link href="/read-our-story" className="block text-sm hover:underline">
-                  Read our story
-                </Link>
-                <Link href="mailto:piggywise.partners@gmail.com" className="block text-sm hover:underline">
-                  Become a partner
-                </Link>
+            {/* RV University Map Column */}
+            <div className="flex flex-col">
+              <h3 className="text-lg font-bold mb-4">Location</h3>
+              <div className="rounded-lg overflow-hidden shadow-md h-36 md:h-40 relative" ref={mapContainerRef}>
+                <iframe 
+                  src={mapSrc}
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="RV University Map"
+                  aria-label="Map showing RV University, Bengaluru"
+                />
               </div>
             </div>
           </div>
@@ -56,8 +53,6 @@ export default function Footer() {
             <div className="text-xs">
               <p>
               Piggywise offers a ₹600 monthly subscription with a 30-day free trial for new customers. The plan includes complete access to all financial education modules, games, parent dashboard, weekly challenges, and personalized learning paths for children. The trial requires adult verification and automatically converts to a paid subscription unless cancelled, which can be done anytime online or through customer support.
-
-
               </p>
             </div>
           </div>

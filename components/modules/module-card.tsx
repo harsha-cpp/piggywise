@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Edit2, Clock, BookOpen } from "lucide-react"
+import { Clock, BookOpen } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
 
@@ -68,11 +68,6 @@ export function ModuleCard({ module, onEdit, showCreator, onClick, isAssigned }:
               {module.description}
             </CardDescription>
           </div>
-          {onEdit && (
-            <Button variant="ghost" size="icon" onClick={onEdit}>
-              <Edit2 className="h-4 w-4" />
-            </Button>
-          )}
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
           <Badge variant="secondary">{module.category}</Badge>
@@ -101,9 +96,9 @@ export function ModuleCard({ module, onEdit, showCreator, onClick, isAssigned }:
         {showCreator && (
           <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
             <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-              {module.creator.name?.[0] || module.creator.email[0]}
+              {module.creator?.name?.[0] || module.creator?.email?.[0] || '?'}
             </div>
-            <span>{module.creator.name || module.creator.email}</span>
+            <span>{module.creator?.name || module.creator?.email || 'Unknown creator'}</span>
             <span>•</span>
             <span>{formatDistanceToNow(new Date(module.createdAt), { addSuffix: true })}</span>
           </div>
