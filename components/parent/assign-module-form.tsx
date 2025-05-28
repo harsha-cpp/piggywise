@@ -101,14 +101,6 @@ export default function AssignModuleForm({ children, modules, createdModules = [
         </Alert>
       )}
 
-      <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 mb-3 sm:mb-4 p-3 sm:p-4">
-        <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-        <AlertTitle className="text-sm sm:text-base">How to assign modules</AlertTitle>
-        <AlertDescription className="text-xs mt-1 sm:mt-2">
-          Select an age-appropriate learning module from the dropdown below. After assignment, the module will appear in your child's dashboard for them to complete.
-        </AlertDescription>
-      </Alert>
-
       <div className="space-y-1.5 sm:space-y-2">
         <Label htmlFor="module" className="flex items-center text-sm">
           <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
